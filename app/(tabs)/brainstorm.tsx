@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function ExploreScreen() {
+export default function BrainstormScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Explore</Text>
+      <Text style={styles.title}>Brainstorm</Text>
     </View>
   );
 }
@@ -19,4 +19,4 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
-});
+}); 

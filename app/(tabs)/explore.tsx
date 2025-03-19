@@ -1,9 +1,197 @@
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { Project } from './home';
+import { router } from 'expo-router';
+
+// Color constants (same as home.tsx)
+const COLORS = {
+  primary: '#007BFF',
+  success: '#28A745',
+  alert: '#DC3545',
+  gray: {
+    light: '#f8f9fa',
+    medium: '#6c757d',
+    dark: '#343a40'
+  },
+  white: '#FFFFFF'
+} as const;
+
+// Dummy data (reusing the structure from home.tsx)
+const dummyProjects: Project[] = [
+  {
+    id: '1',
+    title: 'Community Garden Initiative',
+    description: 'Creating sustainable gardens in urban areas to promote food security and community engagement.',
+    location: 'Brooklyn, NY',
+    category: 'Environment',
+    progress: 75,
+    fundingRaised: 15000,
+    fundingGoal: 20000,
+    volunteers: 28,
+  },
+  {
+    id: '2',
+    title: 'Youth Tech Education Program',
+    description: 'Providing coding and digital skills training to underprivileged youth in local communities.',
+    location: 'San Francisco, CA',
+    category: 'Education',
+    progress: 45,
+    fundingRaised: 25000,
+    fundingGoal: 50000,
+    volunteers: 15,
+  },
+  {
+    id: '3',
+    title: 'Elderly Care Support Network',
+    description: 'Connecting volunteers with elderly residents for companionship and daily assistance.',
+    location: 'Chicago, IL',
+    category: 'Healthcare',
+    progress: 90,
+    fundingRaised: 35000,
+    fundingGoal: 40000,
+    volunteers: 42,
+  },
+];
+
+// Filter options
+const categories = ['All', 'Environment', 'Education', 'Healthcare', 'Technology', 'Social'];
+const locations = ['All', 'New York', 'San Francisco', 'Chicago', 'Los Angeles', 'Miami'];
+const fundingStatuses = ['All', 'Under 25%', '25-50%', '50-75%', 'Over 75%', 'Fully Funded'];
+const volunteerNeeds = ['All', '1-10', '11-25', '26-50', '50+', 'Urgent Need'];
+
+interface FilterOption {
+  label: string;
+  options: string[];
+  icon: keyof typeof MaterialIcons.glyphMap;
+}
+
+const filterOptions: FilterOption[] = [
+  { label: 'Category', options: categories, icon: 'category' },
+  { label: 'Location', options: locations, icon: 'location-on' },
+  { label: 'Funding', options: fundingStatuses, icon: 'attach-money' },
+  { label: 'Volunteers', options: volunteerNeeds, icon: 'people' },
+];
+
+const ProjectCard: React.FC<{ project: Project }> = ({ project }) => (
+  <TouchableOpacity
+    style={styles.card}
+    activeOpacity={0.7}
+    onPress={() => router.push(`/project-details?id=${project.id}`)}
+  >
+    <View style={styles.categoryTag}>
+      <Text style={styles.categoryText}>{project.category.toUpperCase()}</Text>
+    </View>
+    <Text style={styles.projectTitle}>{project.title}</Text>
+    <Text style={styles.description} numberOfLines={2}>{project.description}</Text>
+    <View style={styles.locationCategory}>
+      <Text style={styles.secondaryText}>
+        <MaterialIcons name="location-on" size={14} color={COLORS.gray.medium} /> {project.location}
+      </Text>
+    </View>
+
+    {/* Progress Bar */}
+    <View style={styles.progressBarContainer}>
+      <View style={[styles.progressBar, {
+        width: `${project.progress}%`,
+        backgroundColor: project.progress >= 100 ? COLORS.success : COLORS.primary
+      }]} />
+    </View>
+    <View style={styles.progressRow}>
+      <Text style={styles.progressText}>{project.progress}% Complete</Text>
+      <Text style={[styles.progressText, project.progress >= 100 && styles.successText]}>
+        {project.progress >= 100 ? 'COMPLETED' : 'IN PROGRESS'}
+      </Text>
+    </View>
+
+    {/* Funding Status */}
+    <View style={styles.fundingContainer}>
+      <Text style={styles.fundingText}>
+        <Text style={styles.fundingHighlight}>${project.fundingRaised.toLocaleString()}</Text>
+        <Text style={styles.fundingSecondary}> / ${project.fundingGoal.toLocaleString()}</Text>
+      </Text>
+    </View>
+
+    {/* Volunteers */}
+    <View style={styles.footer}>
+      <View style={styles.volunteersContainer}>
+        <MaterialIcons name="people" size={16} color={COLORS.primary} />
+        <Text style={styles.volunteersText}>{project.volunteers} Volunteers</Text>
+      </View>
+      <Text style={styles.viewDetailsText}>VIEW DETAILS →</Text>
+    </View>
+  </TouchableOpacity>
+);
 
 export default function ExploreScreen() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedFilters, setSelectedFilters] = useState({
+    category: 'All',
+    location: 'All',
+    funding: 'All',
+    volunteers: 'All',
+  });
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Explore</Text>
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBar}>
+          <MaterialIcons name="search" size={24} color={COLORS.gray.medium} style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search projects by keyword or location"
+            placeholderTextColor={COLORS.gray.medium}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+        <TouchableOpacity
+          style={styles.filterButton}
+          onPress={() => setShowFilters(!showFilters)}
+        >
+          <MaterialIcons
+            name="tune"
+            size={24}
+            color={showFilters ? COLORS.primary : COLORS.gray.dark}
+          />
+        </TouchableOpacity>
+      </View>
+
+      {/* Filter Options */}
+      {showFilters && (
+        <ScrollView
+          horizontal
+          style={styles.filterContainer}
+          showsHorizontalScrollIndicator={false}
+        >
+          {filterOptions.map((filter, index) => (
+            <TouchableOpacity
+              key={filter.label}
+              style={[
+                styles.filterOption,
+                selectedFilters[filter.label.toLowerCase() as keyof typeof selectedFilters] !== 'All' &&
+                styles.filterOptionActive
+              ]}
+            >
+              <MaterialIcons name={filter.icon} size={16} color={COLORS.primary} />
+              <Text style={styles.filterText}>{filter.label}</Text>
+              <MaterialIcons name="arrow-drop-down" size={20} color={COLORS.primary} />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
+
+      {/* Project List */}
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
+        {dummyProjects.map(project => (
+          <ProjectCard key={project.id} project={project} />
+        ))}
+      </ScrollView>
     </View>
   );
 }
@@ -11,12 +199,178 @@ export default function ExploreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.gray.light,
   },
-  title: {
-    fontSize: 24,
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  searchBar: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.gray.light,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginRight: 12,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    fontSize: 16,
+    color: COLORS.gray.dark,
+  },
+  filterButton: {
+    padding: 8,
+  },
+  filterContainer: {
+    backgroundColor: COLORS.white,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  filterOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COLORS.gray.medium,
+    marginRight: 8,
+  },
+  filterOptionActive: {
+    backgroundColor: COLORS.primary + '15',
+    borderColor: COLORS.primary,
+  },
+  filterText: {
+    color: COLORS.gray.dark,
+    marginHorizontal: 4,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  scrollView: {
+    flex: 1,
+    paddingTop: 8,
+  },
+  card: {
+    backgroundColor: COLORS.white,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  categoryTag: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: COLORS.primary + '15',
+    borderRadius: 4,
+    marginBottom: 12,
+  },
+  categoryText: {
+    color: COLORS.primary,
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  projectTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
+    marginBottom: 8,
+    color: COLORS.gray.dark,
+  },
+  description: {
+    fontSize: 14,
+    color: COLORS.gray.medium,
+    marginBottom: 12,
+    lineHeight: 20,
+  },
+  locationCategory: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  secondaryText: {
+    fontSize: 14,
+    color: COLORS.gray.medium,
+  },
+  progressBarContainer: {
+    height: 6,
+    backgroundColor: '#E9ECEF',
+    borderRadius: 3,
+    marginBottom: 8,
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: COLORS.primary,
+    borderRadius: 3,
+  },
+  progressRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  progressText: {
+    fontSize: 12,
+    color: COLORS.gray.medium,
+    textTransform: 'uppercase',
+    fontWeight: '500',
+  },
+  successText: {
+    color: COLORS.success,
+  },
+  fundingContainer: {
+    marginBottom: 16,
+  },
+  fundingText: {
+    fontSize: 16,
+  },
+  fundingHighlight: {
+    color: COLORS.gray.dark,
+    fontWeight: 'bold',
+  },
+  fundingSecondary: {
+    color: COLORS.gray.medium,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  volunteersContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  volunteersText: {
+    fontSize: 14,
+    color: COLORS.gray.medium,
+    marginLeft: 6,
+  },
+  viewDetailsText: {
+    fontSize: 12,
+    color: COLORS.primary,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
 });

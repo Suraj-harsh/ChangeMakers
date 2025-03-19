@@ -14,11 +14,18 @@ export default function TabLayout() {
         },
         headerStyle: {
           backgroundColor: '#fff',
+          height: 120,
         },
         headerTintColor: '#000',
         headerTitleStyle: {
           fontWeight: 'bold',
+          textAlign: 'center',
+          alignSelf: 'center',
+          fontSize: 20,
+          marginTop: 20,
         },
+        headerTitle: 'ChangeMakers',
+        headerTitleAlign: 'center',
       }}>
       <Tabs.Screen
         name="home"
@@ -35,15 +42,6 @@ export default function TabLayout() {
           title: 'Explore',
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="explore" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="brainstorm"
-        options={{
-          title: 'Brainstorm',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="lightbulb" size={size} color={color} />
           ),
         }}
       />

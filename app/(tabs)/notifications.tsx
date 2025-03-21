@@ -183,6 +183,11 @@ export default function NotificationsScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Header Bar */}
+      <View style={styles.headerBar}>
+        <Text style={styles.headerTitle}>Notifications</Text>
+      </View>
+      
       <ScrollView style={styles.scrollView}>
         {notifications.map(notification => (
           <NotificationItem key={notification.id} notification={notification} />
@@ -196,6 +201,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.gray.light,
+  },
+  headerBar: {
+    height: 60,
+    backgroundColor: COLORS.white,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.gray.dark,
   },
   scrollView: {
     flex: 1,

@@ -12,20 +12,7 @@ export default function TabLayout() {
           borderTopWidth: 1,
           borderTopColor: '#E5E5EA',
         },
-        headerStyle: {
-          backgroundColor: '#fff',
-          height: 120,
-        },
-        headerTintColor: '#000',
-        headerTitleStyle: {
-          fontWeight: 'bold',
-          textAlign: 'center',
-          alignSelf: 'center',
-          fontSize: 20,
-          marginTop: 20,
-        },
-        headerTitle: 'ChangeMakers',
-        headerTitleAlign: 'center',
+        headerShown: false,
       }}>
       <Tabs.Screen
         name="home"

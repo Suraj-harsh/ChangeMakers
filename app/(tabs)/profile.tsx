@@ -225,47 +225,76 @@ export default function ProfileScreen() {
   const [user] = useState(dummyUser);
 
   return (
-    <ScrollView style={styles.container}>
-      <ProfileHeader user={user} />
-
-      {/* Scores Section */}
-      <View style={styles.scoresContainer}>
-        <ScoreCard title="Trust Score" score={user.trustScore} icon="verified" />
-        <ScoreCard title="Impact Score" score={user.impactScore} icon="emoji-events" />
+    <View style={styles.mainContainer}>
+      {/* Header Bar */}
+      <View style={styles.headerBar}>
+        <Text style={styles.headerTitle}>Profile</Text>
       </View>
+      
+      <ScrollView style={styles.container}>
+        <ProfileHeader user={user} />
 
-      {/* Projects Section */}
-      <View style={styles.section}>
-        <SectionHeader title="My Projects" action="View All" />
-        {user.projects.map(project => (
-          <ProjectCard key={project.id} project={project} />
-        ))}
-      </View>
+        {/* Scores Section */}
+        <View style={styles.scoresContainer}>
+          <ScoreCard title="Trust Score" score={user.trustScore} icon="verified" />
+          <ScoreCard title="Impact Score" score={user.impactScore} icon="emoji-events" />
+        </View>
 
-      {/* Quick Actions */}
-      <View style={styles.quickActions}>
-        <TouchableOpacity style={styles.actionButton}>
-          <MaterialIcons name="settings" size={24} color={COLORS.gray.dark} />
-          <Text style={styles.actionText}>Settings</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton}>
-          <MaterialIcons name="security" size={24} color={COLORS.gray.dark} />
-          <Text style={styles.actionText}>Privacy</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton}>
-          <MaterialIcons name="help" size={24} color={COLORS.gray.dark} />
-          <Text style={styles.actionText}>Help</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton}>
-          <MaterialIcons name="logout" size={24} color={COLORS.alert} />
-          <Text style={[styles.actionText, { color: COLORS.alert }]}>Logout</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+        {/* Projects Section */}
+        <View style={styles.section}>
+          <SectionHeader title="My Projects" action="View All" />
+          {user.projects.map(project => (
+            <ProjectCard key={project.id} project={project} />
+          ))}
+        </View>
+
+        {/* Quick Actions */}
+        <View style={styles.quickActions}>
+          <TouchableOpacity style={styles.actionButton}>
+            <MaterialIcons name="settings" size={24} color={COLORS.gray.dark} />
+            <Text style={styles.actionText}>Settings</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton}>
+            <MaterialIcons name="security" size={24} color={COLORS.gray.dark} />
+            <Text style={styles.actionText}>Privacy</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton}>
+            <MaterialIcons name="help" size={24} color={COLORS.gray.dark} />
+            <Text style={styles.actionText}>Help</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton}>
+            <MaterialIcons name="logout" size={24} color={COLORS.alert} />
+            <Text style={[styles.actionText, { color: COLORS.alert }]}>Logout</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    backgroundColor: COLORS.gray.light,
+  },
+  headerBar: {
+    height: 60,
+    backgroundColor: COLORS.white,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.gray.dark,
+  },
   container: {
     flex: 1,
     backgroundColor: COLORS.gray.light,

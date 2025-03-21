@@ -161,26 +161,28 @@ export default function ExploreScreen() {
 
       {/* Filter Options */}
       {showFilters && (
-        <ScrollView
-          horizontal
-          style={styles.filterContainer}
-          showsHorizontalScrollIndicator={false}
-        >
-          {filterOptions.map((filter, index) => (
-            <TouchableOpacity
-              key={filter.label}
-              style={[
-                styles.filterOption,
-                selectedFilters[filter.label.toLowerCase() as keyof typeof selectedFilters] !== 'All' &&
-                styles.filterOptionActive
-              ]}
-            >
-              <MaterialIcons name={filter.icon} size={16} color={COLORS.primary} />
-              <Text style={styles.filterText}>{filter.label}</Text>
-              <MaterialIcons name="arrow-drop-down" size={20} color={COLORS.primary} />
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        <View style={styles.filterContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterScrollContent}
+          >
+            {filterOptions.map((filter, index) => (
+              <TouchableOpacity
+                key={filter.label}
+                style={[
+                  styles.filterOption,
+                  selectedFilters[filter.label.toLowerCase() as keyof typeof selectedFilters] !== 'All' &&
+                  styles.filterOptionActive
+                ]}
+              >
+                <MaterialIcons name={filter.icon} size={14} color={COLORS.primary} />
+                <Text style={styles.filterText}>{filter.label}</Text>
+                <MaterialIcons name="arrow-drop-down" size={16} color={COLORS.primary} />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
       )}
 
       {/* Project List */}
@@ -232,20 +234,26 @@ const styles = StyleSheet.create({
   },
   filterContainer: {
     backgroundColor: COLORS.white,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    flexDirection: 'row',
+  },
+  filterScrollContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   filterOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 20,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: COLORS.gray.medium,
-    marginRight: 8,
+    marginRight: 6,
+    height: 30,
   },
   filterOptionActive: {
     backgroundColor: COLORS.primary + '15',

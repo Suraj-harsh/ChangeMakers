@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
@@ -27,6 +27,7 @@ export interface Project {
   fundingRaised: number;
   fundingGoal: number;
   volunteers: number;
+  profilePicture: string;
 }
 
 // Dummy data for projects
@@ -41,6 +42,7 @@ const dummyProjects: Project[] = [
     fundingRaised: 15000,
     fundingGoal: 20000,
     volunteers: 28,
+    profilePicture: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=800&auto=format&fit=crop&q=60',
   },
   {
     id: '2',
@@ -52,6 +54,7 @@ const dummyProjects: Project[] = [
     fundingRaised: 25000,
     fundingGoal: 50000,
     volunteers: 15,
+    profilePicture: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60',
   },
   {
     id: '3',
@@ -63,6 +66,7 @@ const dummyProjects: Project[] = [
     fundingRaised: 35000,
     fundingGoal: 40000,
     volunteers: 42,
+    profilePicture: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=60',
   },
 ];
 
@@ -76,47 +80,56 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => (
     activeOpacity={0.7}
     onPress={() => router.push(`/project-details?id=${project.id}`)}
   >
-    <View style={styles.categoryTag}>
-      <Text style={styles.categoryText}>{project.category.toUpperCase()}</Text>
-    </View>
-    <Text style={styles.projectTitle}>{project.title}</Text>
-    <Text style={styles.description} numberOfLines={2}>{project.description}</Text>
-    <View style={styles.locationCategory}>
-      <Text style={styles.secondaryText}>
-        <MaterialIcons name="location-on" size={14} color={COLORS.gray.medium} /> {project.location}
-      </Text>
-    </View>
-
-    {/* Progress Bar */}
-    <View style={styles.progressBarContainer}>
-      <View style={[styles.progressBar, {
-        width: `${project.progress}%`,
-        backgroundColor: project.progress >= 100 ? COLORS.success : COLORS.primary
-      }]} />
-    </View>
-    <View style={styles.progressRow}>
-      <Text style={styles.progressText}>{project.progress}% Complete</Text>
-      <Text style={[styles.progressText, project.progress >= 100 && styles.successText]}>
-        {project.progress >= 100 ? 'COMPLETED' : 'IN PROGRESS'}
-      </Text>
-    </View>
-
-    {/* Funding Status */}
-    <View style={styles.fundingContainer}>
-      <Text style={styles.fundingLabel}>FUNDING GOAL</Text>
-      <Text style={styles.fundingText}>
-        <Text style={styles.fundingHighlight}>${project.fundingRaised.toLocaleString()}</Text>
-        <Text style={styles.fundingSecondary}> / ${project.fundingGoal.toLocaleString()}</Text>
-      </Text>
-    </View>
-
-    {/* Volunteers */}
-    <View style={styles.footer}>
-      <View style={styles.volunteersContainer}>
-        <MaterialIcons name="people" size={16} color={COLORS.primary} />
-        <Text style={styles.volunteersText}>{project.volunteers} Volunteers</Text>
+    <Image 
+      source={{ uri: project.profilePicture }}
+      style={styles.projectImage}
+      resizeMode="cover"
+    />
+    <View style={styles.cardContent}>
+      <View style={styles.cardHeader}>
+        <View style={styles.categoryTag}>
+          <Text style={styles.categoryText}>{project.category.toUpperCase()}</Text>
+        </View>
       </View>
-      <Text style={styles.viewDetailsText}>VIEW DETAILS →</Text>
+      <Text style={styles.projectTitle}>{project.title}</Text>
+      <Text style={styles.description} numberOfLines={2}>{project.description}</Text>
+      <View style={styles.locationCategory}>
+        <Text style={styles.secondaryText}>
+          <MaterialIcons name="location-on" size={14} color={COLORS.gray.medium} /> {project.location}
+        </Text>
+      </View>
+
+      {/* Progress Bar */}
+      <View style={styles.progressBarContainer}>
+        <View style={[styles.progressBar, {
+          width: `${project.progress}%`,
+          backgroundColor: project.progress >= 100 ? COLORS.success : COLORS.primary
+        }]} />
+      </View>
+      <View style={styles.progressRow}>
+        <Text style={styles.progressText}>{project.progress}% Complete</Text>
+        <Text style={[styles.progressText, project.progress >= 100 && styles.successText]}>
+          {project.progress >= 100 ? 'COMPLETED' : 'IN PROGRESS'}
+        </Text>
+      </View>
+
+      {/* Funding Status */}
+      <View style={styles.fundingContainer}>
+        <Text style={styles.fundingLabel}>FUNDING GOAL</Text>
+        <Text style={styles.fundingText}>
+          <Text style={styles.fundingHighlight}>${project.fundingRaised.toLocaleString()}</Text>
+          <Text style={styles.fundingSecondary}> / ${project.fundingGoal.toLocaleString()}</Text>
+        </Text>
+      </View>
+
+      {/* Volunteers */}
+      <View style={styles.footer}>
+        <View style={styles.volunteersContainer}>
+          <MaterialIcons name="people" size={16} color={COLORS.primary} />
+          <Text style={styles.volunteersText}>{project.volunteers} Volunteers</Text>
+        </View>
+        <Text style={styles.viewDetailsText}>VIEW DETAILS →</Text>
+      </View>
     </View>
   </TouchableOpacity>
 );
@@ -129,7 +142,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Recommended Projects</Text>
+      <Text style={styles.sectionTitle}>Changemakers</Text>
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -175,8 +188,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     marginHorizontal: 16,
     marginBottom: 16,
-    padding: 16,
     borderRadius: 12,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -186,15 +199,28 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 3,
   },
+  projectImage: {
+    width: '100%',
+    height: 200,
+    backgroundColor: COLORS.gray.light,
+  },
+  cardContent: {
+    padding: 16,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginBottom: 12,
+  },
   categoryTag: {
-    alignSelf: 'flex-start',
     paddingHorizontal: 8,
     paddingVertical: 4,
     backgroundColor: COLORS.primary + '15',
     borderRadius: 4,
-    marginBottom: 12,
   },
   categoryText: {
+  
     color: COLORS.primary,
     fontSize: 12,
     fontWeight: '600',

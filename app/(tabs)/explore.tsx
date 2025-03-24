@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Image, ActivityIndicator, Modal } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Project } from './home';
 import { router } from 'expo-router';
@@ -29,6 +29,7 @@ const dummyProjects: Project[] = [
     fundingRaised: 15000,
     fundingGoal: 20000,
     volunteers: 28,
+    profilePicture: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=800&auto=format&fit=crop&q=60',
   },
   {
     id: '2',
@@ -40,6 +41,7 @@ const dummyProjects: Project[] = [
     fundingRaised: 25000,
     fundingGoal: 50000,
     volunteers: 15,
+    profilePicture: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60',
   },
   {
     id: '3',
@@ -51,6 +53,7 @@ const dummyProjects: Project[] = [
     fundingRaised: 35000,
     fundingGoal: 40000,
     volunteers: 42,
+    profilePicture: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=60',
   },
 ];
 
@@ -73,55 +76,150 @@ const filterOptions: FilterOption[] = [
   { label: 'Volunteers', options: volunteerNeeds, icon: 'people' },
 ];
 
-const ProjectCard: React.FC<{ project: Project }> = ({ project }) => (
-  <TouchableOpacity
-    style={styles.card}
-    activeOpacity={0.7}
-    onPress={() => router.push(`/project-details?id=${project.id}`)}
+interface FilterModalProps {
+  visible: boolean;
+  onClose: () => void;
+  title: string;
+  options: string[];
+  selectedOption: string;
+  onSelect: (option: string) => void;
+}
+
+const FilterModal: React.FC<FilterModalProps> = ({
+  visible,
+  onClose,
+  title,
+  options,
+  selectedOption,
+  onSelect,
+}) => (
+  <Modal
+    visible={visible}
+    transparent
+    animationType="slide"
+    onRequestClose={onClose}
   >
-    <View style={styles.categoryTag}>
-      <Text style={styles.categoryText}>{project.category.toUpperCase()}</Text>
-    </View>
-    <Text style={styles.projectTitle}>{project.title}</Text>
-    <Text style={styles.description} numberOfLines={2}>{project.description}</Text>
-    <View style={styles.locationCategory}>
-      <Text style={styles.secondaryText}>
-        <MaterialIcons name="location-on" size={14} color={COLORS.gray.medium} /> {project.location}
-      </Text>
-    </View>
-
-    {/* Progress Bar */}
-    <View style={styles.progressBarContainer}>
-      <View style={[styles.progressBar, {
-        width: `${project.progress}%`,
-        backgroundColor: project.progress >= 100 ? COLORS.success : COLORS.primary
-      }]} />
-    </View>
-    <View style={styles.progressRow}>
-      <Text style={styles.progressText}>{project.progress}% Complete</Text>
-      <Text style={[styles.progressText, project.progress >= 100 && styles.successText]}>
-        {project.progress >= 100 ? 'COMPLETED' : 'IN PROGRESS'}
-      </Text>
-    </View>
-
-    {/* Funding Status */}
-    <View style={styles.fundingContainer}>
-      <Text style={styles.fundingText}>
-        <Text style={styles.fundingHighlight}>${project.fundingRaised.toLocaleString()}</Text>
-        <Text style={styles.fundingSecondary}> / ${project.fundingGoal.toLocaleString()}</Text>
-      </Text>
-    </View>
-
-    {/* Volunteers */}
-    <View style={styles.footer}>
-      <View style={styles.volunteersContainer}>
-        <MaterialIcons name="people" size={16} color={COLORS.primary} />
-        <Text style={styles.volunteersText}>{project.volunteers} Volunteers</Text>
+    <View style={styles.modalOverlay}>
+      <View style={styles.modalContent}>
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalTitle}>{title}</Text>
+          <TouchableOpacity onPress={onClose}>
+            <MaterialIcons name="close" size={24} color={COLORS.gray.dark} />
+          </TouchableOpacity>
+        </View>
+        <ScrollView style={styles.modalOptions}>
+          {options.map((option) => (
+            <TouchableOpacity
+              key={option}
+              style={[
+                styles.modalOption,
+                option === selectedOption && styles.modalOptionSelected,
+              ]}
+              onPress={() => {
+                onSelect(option);
+                onClose();
+              }}
+            >
+              <Text style={[
+                styles.modalOptionText,
+                option === selectedOption && styles.modalOptionTextSelected,
+              ]}>
+                {option}
+              </Text>
+              {option === selectedOption && (
+                <MaterialIcons name="check" size={20} color={COLORS.primary} />
+              )}
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
-      <Text style={styles.viewDetailsText}>VIEW DETAILS →</Text>
     </View>
-  </TouchableOpacity>
+  </Modal>
 );
+
+const ProjectCard: React.FC<{ project: Project }> = ({ project }) => {
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+
+  return (
+    <TouchableOpacity
+      style={styles.card}
+      activeOpacity={0.7}
+      onPress={() => router.push(`/project-details?id=${project.id}`)}
+    >
+      {/* Project Image */}
+      <View style={styles.imageContainer}>
+        {imageLoading && (
+          <View style={styles.imageLoadingContainer}>
+            <ActivityIndicator size="large" color={COLORS.primary} />
+          </View>
+        )}
+        {imageError ? (
+          <View style={styles.imageErrorContainer}>
+            <MaterialIcons name="image-not-supported" size={40} color={COLORS.gray.medium} />
+            <Text style={styles.imageErrorText}>Image not available</Text>
+          </View>
+        ) : (
+          <Image
+            source={{ uri: project.profilePicture }}
+            style={styles.projectImage}
+            onLoadStart={() => setImageLoading(true)}
+            onLoadEnd={() => setImageLoading(false)}
+            onError={() => {
+              setImageLoading(false);
+              setImageError(true);
+            }}
+            resizeMode="cover"
+          />
+        )}
+      </View>
+
+      <View style={styles.cardContent}>
+        <View style={styles.categoryTag}>
+          <Text style={styles.categoryText}>{project.category.toUpperCase()}</Text>
+        </View>
+        <Text style={styles.projectTitle}>{project.title}</Text>
+        <Text style={styles.description} numberOfLines={2}>{project.description}</Text>
+        <View style={styles.locationCategory}>
+          <Text style={styles.secondaryText}>
+            <MaterialIcons name="location-on" size={14} color={COLORS.gray.medium} /> {project.location}
+          </Text>
+        </View>
+
+        {/* Progress Bar */}
+        <View style={styles.progressBarContainer}>
+          <View style={[styles.progressBar, {
+            width: `${project.progress}%`,
+            backgroundColor: project.progress >= 100 ? COLORS.success : COLORS.primary
+          }]} />
+        </View>
+        <View style={styles.progressRow}>
+          <Text style={styles.progressText}>{project.progress}% Complete</Text>
+          <Text style={[styles.progressText, project.progress >= 100 && styles.successText]}>
+            {project.progress >= 100 ? 'COMPLETED' : 'IN PROGRESS'}
+          </Text>
+        </View>
+
+        {/* Funding Status */}
+        <View style={styles.fundingContainer}>
+          <Text style={styles.fundingText}>
+            <Text style={styles.fundingHighlight}>${project.fundingRaised.toLocaleString()}</Text>
+            <Text style={styles.fundingSecondary}> / ${project.fundingGoal.toLocaleString()}</Text>
+          </Text>
+        </View>
+
+        {/* Volunteers */}
+        <View style={styles.footer}>
+          <View style={styles.volunteersContainer}>
+            <MaterialIcons name="people" size={16} color={COLORS.primary} />
+            <Text style={styles.volunteersText}>{project.volunteers} Volunteers</Text>
+          </View>
+          <Text style={styles.viewDetailsText}>VIEW DETAILS →</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 export default function ExploreScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -131,6 +229,64 @@ export default function ExploreScreen() {
     location: 'All',
     funding: 'All',
     volunteers: 'All',
+  });
+  const [activeFilter, setActiveFilter] = useState<FilterOption | null>(null);
+
+  const handleFilterSelect = (filterType: keyof typeof selectedFilters, value: string) => {
+    setSelectedFilters(prev => ({
+      ...prev,
+      [filterType]: value,
+    }));
+  };
+
+  const filteredProjects = dummyProjects.filter(project => {
+    if (selectedFilters.category !== 'All' && project.category !== selectedFilters.category) return false;
+    if (selectedFilters.location !== 'All' && !project.location.includes(selectedFilters.location)) return false;
+
+    // Funding filter
+    if (selectedFilters.funding !== 'All') {
+      const fundingPercentage = (project.fundingRaised / project.fundingGoal) * 100;
+      switch (selectedFilters.funding) {
+        case 'Under 25%':
+          if (fundingPercentage >= 25) return false;
+          break;
+        case '25-50%':
+          if (fundingPercentage < 25 || fundingPercentage >= 50) return false;
+          break;
+        case '50-75%':
+          if (fundingPercentage < 50 || fundingPercentage >= 75) return false;
+          break;
+        case 'Over 75%':
+          if (fundingPercentage < 75) return false;
+          break;
+        case 'Fully Funded':
+          if (fundingPercentage < 100) return false;
+          break;
+      }
+    }
+
+    // Volunteers filter
+    if (selectedFilters.volunteers !== 'All') {
+      switch (selectedFilters.volunteers) {
+        case '1-10':
+          if (project.volunteers > 10) return false;
+          break;
+        case '11-25':
+          if (project.volunteers < 11 || project.volunteers > 25) return false;
+          break;
+        case '26-50':
+          if (project.volunteers < 26 || project.volunteers > 50) return false;
+          break;
+        case '50+':
+          if (project.volunteers <= 50) return false;
+          break;
+        case 'Urgent Need':
+          if (project.volunteers > 10) return false;
+          break;
+      }
+    }
+
+    return true;
   });
 
   return (
@@ -167,7 +323,7 @@ export default function ExploreScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.filterScrollContent}
           >
-            {filterOptions.map((filter, index) => (
+            {filterOptions.map((filter) => (
               <TouchableOpacity
                 key={filter.label}
                 style={[
@@ -175,6 +331,7 @@ export default function ExploreScreen() {
                   selectedFilters[filter.label.toLowerCase() as keyof typeof selectedFilters] !== 'All' &&
                   styles.filterOptionActive
                 ]}
+                onPress={() => setActiveFilter(filter)}
               >
                 <MaterialIcons name={filter.icon} size={14} color={COLORS.primary} />
                 <Text style={styles.filterText}>{filter.label}</Text>
@@ -190,10 +347,22 @@ export default function ExploreScreen() {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        {dummyProjects.map(project => (
+        {filteredProjects.map(project => (
           <ProjectCard key={project.id} project={project} />
         ))}
       </ScrollView>
+
+      {/* Filter Modal */}
+      {activeFilter && (
+        <FilterModal
+          visible={!!activeFilter}
+          onClose={() => setActiveFilter(null)}
+          title={activeFilter.label}
+          options={activeFilter.options}
+          selectedOption={selectedFilters[activeFilter.label.toLowerCase() as keyof typeof selectedFilters]}
+          onSelect={(option) => handleFilterSelect(activeFilter.label.toLowerCase() as keyof typeof selectedFilters, option)}
+        />
+      )}
     </View>
   );
 }
@@ -273,7 +442,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     marginHorizontal: 16,
     marginBottom: 16,
-    padding: 16,
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: {
@@ -283,6 +451,44 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 3,
+    overflow: 'hidden',
+  },
+  imageContainer: {
+    width: '100%',
+    height: 200,
+    backgroundColor: COLORS.gray.light,
+  },
+  projectImage: {
+    width: '100%',
+    height: '100%',
+  },
+  imageLoadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.gray.light,
+  },
+  imageErrorContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.gray.light,
+  },
+  imageErrorText: {
+    marginTop: 8,
+    color: COLORS.gray.medium,
+    fontSize: 14,
+  },
+  cardContent: {
+    padding: 16,
   },
   categoryTag: {
     alignSelf: 'flex-start',
@@ -380,5 +586,51 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     fontWeight: '600',
     textTransform: 'uppercase',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 16,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.gray.dark,
+  },
+  modalOptions: {
+    maxHeight: 400,
+  },
+  modalOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  modalOptionSelected: {
+    backgroundColor: COLORS.primary + '10',
+  },
+  modalOptionText: {
+    fontSize: 16,
+    color: COLORS.gray.dark,
+  },
+  modalOptionTextSelected: {
+    color: COLORS.primary,
+    fontWeight: '600',
   },
 });

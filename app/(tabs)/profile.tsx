@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useRouter } from 'expo-router';
+import { useUser } from '../context/UserContext';
 
 // Color constants (same as other pages)
 const COLORS = {
@@ -31,6 +32,7 @@ interface UserProfile {
   volunteerHistory: VolunteerActivity[];
   donations: Donation[];
   endorsements: Endorsement[];
+  avatar: string;
 }
 
 interface Achievement {
@@ -142,46 +144,72 @@ const dummyUser: UserProfile = {
       review: "Amazing initiative that truly transforms the community!",
       date: "2024-03-10"
     }
-  ]
+  ],
+  avatar: "https://example.com/sarah-johnson.jpg"
 };
 
-const ProfileHeader: React.FC<{ user: UserProfile }> = ({ user }) => (
-  <View style={styles.header}>
-    <View style={styles.profileImageContainer}>
-      <View style={styles.profileImage}>
-        <Text style={styles.profileInitials}>
-          {user.username.split(' ').map(n => n[0]).join('')}
-        </Text>
+const ProfileHeader: React.FC<{ user: UserProfile }> = ({ user }) => {
+  const router = useRouter();
+
+  const handleEditProfile = () => {
+    console.log('Edit Profile button pressed');
+    router.push('/edit-profile');
+  };
+
+  return (
+    <View style={styles.header}>
+      <View style={styles.avatarContainer}>
+        {user.avatar.startsWith('http') || user.avatar.startsWith('file://') ? (
+          <Image
+            source={{ uri: user.avatar }}
+            style={styles.avatar}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.avatarPlaceholder}>
+            <Text style={styles.avatarPlaceholderText}>{user.avatar}</Text>
+          </View>
+        )}
+        <TouchableOpacity
+          style={styles.changeAvatarButton}
+          onPress={handleEditProfile}
+          activeOpacity={0.7}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <MaterialIcons name="camera-alt" size={20} color={COLORS.white} />
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.editImageButton}>
-        <MaterialIcons name="camera-alt" size={20} color={COLORS.white} />
+      <View style={styles.profileInfo}>
+        <View style={styles.nameContainer}>
+          <Text style={styles.username}>{user.username}</Text>
+          {user.isVerified && (
+            <MaterialIcons name="verified" size={20} color={COLORS.primary} />
+          )}
+        </View>
+        <Text style={styles.location}>
+          <MaterialIcons name="location-on" size={16} color={COLORS.gray.medium} />
+          {user.location}
+        </Text>
+        <Text style={styles.bio}>{user.bio}</Text>
+        <View style={styles.interestsContainer}>
+          {user.interests.map((interest, index) => (
+            <View key={index} style={styles.interestTag}>
+              <Text style={styles.interestText}>{interest}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+      <TouchableOpacity
+        style={[styles.editProfileButton, { opacity: 1 }]}
+        onPress={handleEditProfile}
+        activeOpacity={0.7}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
+        <Text style={styles.editProfileText}>EDIT PROFILE</Text>
       </TouchableOpacity>
     </View>
-    <View style={styles.profileInfo}>
-      <View style={styles.nameContainer}>
-        <Text style={styles.username}>{user.username}</Text>
-        {user.isVerified && (
-          <MaterialIcons name="verified" size={20} color={COLORS.primary} />
-        )}
-      </View>
-      <Text style={styles.location}>
-        <MaterialIcons name="location-on" size={16} color={COLORS.gray.medium} />
-        {user.location}
-      </Text>
-      <Text style={styles.bio}>{user.bio}</Text>
-      <View style={styles.interestsContainer}>
-        {user.interests.map((interest, index) => (
-          <View key={index} style={styles.interestTag}>
-            <Text style={styles.interestText}>{interest}</Text>
-          </View>
-        ))}
-      </View>
-    </View>
-    <TouchableOpacity style={styles.editProfileButton}>
-      <Text style={styles.editProfileText}>EDIT PROFILE</Text>
-    </TouchableOpacity>
-  </View>
-);
+  );
+};
 
 const ScoreCard: React.FC<{ title: string; score: number; icon: string }> = ({ title, score, icon }) => (
   <View style={styles.scoreCard}>
@@ -222,53 +250,23 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => (
 );
 
 export default function ProfileScreen() {
-  const [user] = useState(dummyUser);
+  const { userData } = useUser();
+  console.log('Profile screen rendered with user data:', userData);
 
   return (
-    <View style={styles.mainContainer}>
-      {/* Header Bar */}
-      <View style={styles.headerBar}>
-        <Text style={styles.headerTitle}>Profile</Text>
+    <ScrollView style={styles.container}>
+      <ProfileHeader user={userData} />
+      <View style={styles.scoresContainer}>
+        <ScoreCard title="Trust Score" score={userData.trustScore} icon="star" />
+        <ScoreCard title="Impact Score" score={userData.impactScore} icon="trending-up" />
       </View>
-      
-      <ScrollView style={styles.container}>
-        <ProfileHeader user={user} />
-
-        {/* Scores Section */}
-        <View style={styles.scoresContainer}>
-          <ScoreCard title="Trust Score" score={user.trustScore} icon="verified" />
-          <ScoreCard title="Impact Score" score={user.impactScore} icon="emoji-events" />
-        </View>
-
-        {/* Projects Section */}
-        <View style={styles.section}>
-          <SectionHeader title="My Projects" action="View All" />
-          {user.projects.map(project => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
-        </View>
-
-        {/* Quick Actions */}
-        <View style={styles.quickActions}>
-          <TouchableOpacity style={styles.actionButton}>
-            <MaterialIcons name="settings" size={24} color={COLORS.gray.dark} />
-            <Text style={styles.actionText}>Settings</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
-            <MaterialIcons name="security" size={24} color={COLORS.gray.dark} />
-            <Text style={styles.actionText}>Privacy</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
-            <MaterialIcons name="help" size={24} color={COLORS.gray.dark} />
-            <Text style={styles.actionText}>Help</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
-            <MaterialIcons name="logout" size={24} color={COLORS.alert} />
-            <Text style={[styles.actionText, { color: COLORS.alert }]}>Logout</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </View>
+      <View style={styles.section}>
+        <SectionHeader title="Projects" action="View All" />
+        {userData.projects.map((project) => (
+          <ProjectCard key={project.id} project={project} />
+        ))}
+      </View>
+    </ScrollView>
   );
 }
 
@@ -306,24 +304,28 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
-  profileImageContainer: {
+  avatarContainer: {
     position: 'relative',
     marginBottom: 16,
   },
-  profileImage: {
+  avatar: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.gray.light,
+  },
+  avatarPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: COLORS.gray.light,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  profileInitials: {
-    color: COLORS.white,
-    fontSize: 36,
-    fontWeight: 'bold',
+  avatarPlaceholderText: {
+    fontSize: 40,
   },
-  editImageButton: {
+  changeAvatarButton: {
     position: 'absolute',
     bottom: 0,
     right: 0,
@@ -335,6 +337,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: COLORS.white,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
   profileInfo: {
     alignItems: 'center',
@@ -380,17 +387,6 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     fontSize: 12,
     fontWeight: '500',
-  },
-  editProfileButton: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  editProfileText: {
-    color: COLORS.white,
-    fontWeight: '600',
-    fontSize: 14,
   },
   scoresContainer: {
     flexDirection: 'row',
@@ -507,5 +503,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.gray.dark,
     marginTop: 4,
+  },
+  editProfileButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 20,
+    marginTop: 16,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    zIndex: 1,
+  },
+  editProfileText: {
+    color: COLORS.white,
+    fontWeight: '600',
+    fontSize: 16,
+    textAlign: 'center',
   },
 }); 

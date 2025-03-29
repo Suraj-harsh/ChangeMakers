@@ -37,6 +37,15 @@ export default function RootLayout() {
             headerTintColor: '#000',
           }}
         />
+        <Stack.Screen
+          name="create-project"
+          options={{
+            presentation: 'modal',
+            headerShown: false,
+            animation: 'slide_from_bottom',
+            gestureEnabled: true,
+          }}
+        />
       </Stack>
     </UserProvider>
   );

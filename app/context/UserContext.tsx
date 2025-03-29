@@ -141,15 +141,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const [userData, setUserData] = useState<UserData>(initialUserData);
 
     const updateUserData = (data: Partial<UserData>) => {
-        console.log('Updating user data with:', data);
-        setUserData(prev => {
-            const newData = {
-                ...prev,
-                ...data
-            };
-            console.log('New user data:', newData);
-            return newData;
-        });
+        setUserData(prev => ({
+            ...prev,
+            ...data
+        }));
     };
 
     return (

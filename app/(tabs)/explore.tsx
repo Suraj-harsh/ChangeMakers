@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Image, ActivityIndicator, Modal } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Project } from './home';
+import { Project } from '../types';
 import { router } from 'expo-router';
 
 // Color constants (same as home.tsx)
@@ -30,6 +30,8 @@ const dummyProjects: Project[] = [
     fundingGoal: 20000,
     volunteers: 28,
     profilePicture: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=800&auto=format&fit=crop&q=60',
+    image: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=800&auto=format&fit=crop&q=60',
+    members: 45
   },
   {
     id: '2',
@@ -42,6 +44,8 @@ const dummyProjects: Project[] = [
     fundingGoal: 50000,
     volunteers: 15,
     profilePicture: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60',
+    image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60',
+    members: 32
   },
   {
     id: '3',
@@ -54,6 +58,8 @@ const dummyProjects: Project[] = [
     fundingGoal: 40000,
     volunteers: 42,
     profilePicture: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=60',
+    image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=60',
+    members: 38
   },
 ];
 

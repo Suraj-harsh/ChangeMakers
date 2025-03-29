@@ -21,6 +21,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="home" size={size} color={color} />
           ),
+          tabBarLabel: () => null
         }}
       />
       <Tabs.Screen
@@ -30,15 +31,17 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="explore" size={size} color={color} />
           ),
+          tabBarLabel: () => null
         }}
       />
       <Tabs.Screen
-        name="notifications"
+        name="create-project"
         options={{
-          title: 'Notifications',
+          title: 'Create Project',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="notifications" size={size} color={color} />
+            <MaterialIcons name="add-circle" size={size} color={color} />
           ),
+          tabBarLabel: () => null
         }}
       />
       <Tabs.Screen
@@ -48,6 +51,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="person" size={size} color={color} />
           ),
+          tabBarLabel: () => null
         }}
       />
     </Tabs>

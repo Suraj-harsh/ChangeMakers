@@ -128,32 +128,34 @@ export default function EditProfileScreen() {
         return newErrors;
     };
 
-    const handleSave = () => {
-        Alert.alert(
-            'Save Changes',
-            'Are you sure you want to save these changes?',
-            [
-                {
-                    text: 'Cancel',
-                    style: 'cancel'
-                },
-                {
-                    text: 'Save',
-                    onPress: () => {
-                        // Update user data
-                        updateUserData({
-                            username: formData.username,
-                            location: formData.location,
-                            bio: formData.bio,
-                            interests: formData.interests
-                        });
+    const handleSave = async () => {
+        try {
+            setIsSaving(true);
+            const newErrors = validateForm(formData);
+            if (Object.keys(newErrors).length > 0) {
+                setErrors(newErrors);
+                return;
+            }
 
-                        // Navigate back to profile
-                        router.push('/(tabs)/profile');
-                    }
-                }
-            ]
-        );
+            // Update user data with form values
+            updateUserData({
+                username: formData.username,
+                location: formData.location,
+                bio: formData.bio,
+                interests: formData.interests
+            });
+
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            Alert.alert('Success', 'Profile updated successfully!');
+            router.replace('/(tabs)/profile');
+        } catch (error) {
+            console.error('Save error:', error);
+            Alert.alert('Error', 'Failed to save changes. Please try again.');
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleBack = () => {
@@ -170,13 +172,15 @@ export default function EditProfileScreen() {
                         text: 'Discard',
                         style: 'destructive',
                         onPress: () => {
-                            router.push('/(tabs)/profile');
+                            // Use router.replace instead of back to ensure we go back to the profile tab
+                            router.replace('/(tabs)/profile');
                         }
                     }
                 ]
             );
         } else {
-            router.push('/(tabs)/profile');
+            // Use router.replace instead of back to ensure we go back to the profile tab
+            router.replace('/(tabs)/profile');
         }
     };
 
@@ -356,7 +360,7 @@ export default function EditProfileScreen() {
                         <TouchableOpacity
                             onPress={handleBack}
                             style={styles.headerButton}
-                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                            disabled={isSaving}
                         >
                             <MaterialIcons name="arrow-back" size={24} color={COLORS.gray.dark} />
                         </TouchableOpacity>
@@ -365,11 +369,18 @@ export default function EditProfileScreen() {
                         <TouchableOpacity
                             onPress={handleSave}
                             style={styles.headerButton}
-                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                            disabled={isSaving || !hasChanges}
                         >
-                            <Text style={styles.saveButton}>
-                                Save
-                            </Text>
+                            {isSaving ? (
+                                <ActivityIndicator size="small" color={COLORS.primary} />
+                            ) : (
+                                <Text style={[
+                                    styles.saveButton,
+                                    (!hasChanges && styles.saveButtonDisabled)
+                                ]}>
+                                    Save
+                                </Text>
+                            )}
                         </TouchableOpacity>
                     ),
                 }}
@@ -705,6 +716,9 @@ const styles = StyleSheet.create({
         color: COLORS.primary,
         fontSize: 16,
         fontWeight: '600',
+    },
+    saveButtonDisabled: {
+        color: COLORS.gray.medium,
     },
     inputError: {
         borderColor: COLORS.alert,

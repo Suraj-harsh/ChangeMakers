@@ -1,166 +1,199 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Image } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, FlatList, RefreshControl } from 'react-native';
+import { Stack, router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-
-// Color constants
-const COLORS = {
-  primary: '#007BFF',
-  success: '#28A745',
-  alert: '#DC3545',
-  gray: {
-    light: '#f8f9fa',
-    medium: '#6c757d',
-    dark: '#343a40'
-  },
-  white: '#FFFFFF'
-} as const;
+import Post from '../components/Post';
+import Header from '../components/Header';
+import { Project, Post as PostType, FeedItem } from '../types';
 
 // Dummy data for projects
-export interface Project {
-  id: string;
-  title: string;
-  description: string;
-  location: string;
-  category: string;
-  progress: number;
-  fundingRaised: number;
-  fundingGoal: number;
-  volunteers: number;
-  profilePicture: string;
-}
-
-// Dummy data for projects
-const dummyProjects: Project[] = [
+const PROJECTS: Project[] = [
   {
     id: '1',
-    title: 'Community Garden Initiative',
-    description: 'Creating sustainable gardens in urban areas to promote food security and community engagement.',
-    location: 'Brooklyn, NY',
+    title: 'Environmental Cleanup',
+    description: 'Join us in cleaning up local parks and beaches',
+    location: 'New York',
     category: 'Environment',
+    image: 'https://picsum.photos/400/300',
+    members: 45,
     progress: 75,
     fundingRaised: 15000,
     fundingGoal: 20000,
     volunteers: 28,
-    profilePicture: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=800&auto=format&fit=crop&q=60',
+    profilePicture: 'https://picsum.photos/100/100'
   },
   {
     id: '2',
-    title: 'Youth Tech Education Program',
-    description: 'Providing coding and digital skills training to underprivileged youth in local communities.',
-    location: 'San Francisco, CA',
+    title: 'Education for All',
+    description: 'Providing free education to underprivileged children',
+    location: 'San Francisco',
     category: 'Education',
-    progress: 45,
+    image: 'https://picsum.photos/400/301',
+    members: 32,
+    progress: 60,
     fundingRaised: 25000,
     fundingGoal: 50000,
     volunteers: 15,
-    profilePicture: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60',
+    profilePicture: 'https://picsum.photos/100/101'
   },
   {
     id: '3',
-    title: 'Elderly Care Support Network',
-    description: 'Connecting volunteers with elderly residents for companionship and daily assistance.',
-    location: 'Chicago, IL',
-    category: 'Healthcare',
-    progress: 90,
+    title: 'Food Bank Initiative',
+    description: 'Helping families in need with food supplies',
+    location: 'Chicago',
+    category: 'Social Welfare',
+    image: 'https://picsum.photos/400/302',
+    members: 28,
+    progress: 85,
     fundingRaised: 35000,
     fundingGoal: 40000,
     volunteers: 42,
-    profilePicture: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=60',
-  },
+    profilePicture: 'https://picsum.photos/100/102'
+  }
 ];
 
-interface ProjectCardProps {
-  project: Project;
-}
-
-const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => (
-  <TouchableOpacity
-    style={styles.card}
-    activeOpacity={0.7}
-    onPress={() => router.push(`/project-details?id=${project.id}`)}
-  >
-    <Image 
-      source={{ uri: project.profilePicture }}
-      style={styles.projectImage}
-      resizeMode="cover"
-    />
-    <View style={styles.cardContent}>
-      <View style={styles.cardHeader}>
-        <View style={styles.categoryTag}>
-          <Text style={styles.categoryText}>{project.category.toUpperCase()}</Text>
-        </View>
-      </View>
-      <Text style={styles.projectTitle}>{project.title}</Text>
-      <Text style={styles.description} numberOfLines={2}>{project.description}</Text>
-      <View style={styles.locationCategory}>
-        <Text style={styles.secondaryText}>
-          <MaterialIcons name="location-on" size={14} color={COLORS.gray.medium} /> {project.location}
-        </Text>
-      </View>
-
-      {/* Progress Bar */}
-      <View style={styles.progressBarContainer}>
-        <View style={[styles.progressBar, {
-          width: `${project.progress}%`,
-          backgroundColor: project.progress >= 100 ? COLORS.success : COLORS.primary
-        }]} />
-      </View>
-      <View style={styles.progressRow}>
-        <Text style={styles.progressText}>{project.progress}% Complete</Text>
-        <Text style={[styles.progressText, project.progress >= 100 && styles.successText]}>
-          {project.progress >= 100 ? 'COMPLETED' : 'IN PROGRESS'}
-        </Text>
-      </View>
-
-      {/* Funding Status */}
-      <View style={styles.fundingContainer}>
-        <Text style={styles.fundingLabel}>FUNDING GOAL</Text>
-        <Text style={styles.fundingText}>
-          <Text style={styles.fundingHighlight}>${project.fundingRaised.toLocaleString()}</Text>
-          <Text style={styles.fundingSecondary}> / ${project.fundingGoal.toLocaleString()}</Text>
-        </Text>
-      </View>
-
-      {/* Volunteers */}
-      <View style={styles.footer}>
-        <View style={styles.volunteersContainer}>
-          <MaterialIcons name="people" size={16} color={COLORS.primary} />
-          <Text style={styles.volunteersText}>{project.volunteers} Volunteers</Text>
-        </View>
-        <Text style={styles.viewDetailsText}>VIEW DETAILS →</Text>
-      </View>
-    </View>
-  </TouchableOpacity>
-);
+// Dummy data for posts
+const POSTS: PostType[] = [
+  {
+    id: '1',
+    title: 'Making a Difference',
+    description: 'Just completed our first beach cleanup event! Thanks to all volunteers who joined us.',
+    location: 'New York',
+    category: 'Environment',
+    mediaItems: [
+      {
+        uri: 'https://picsum.photos/400/400',
+        type: 'image'
+      }
+    ],
+    username: 'John Doe',
+    timestamp: '2 hours ago'
+  },
+  {
+    id: '2',
+    title: 'Education Success',
+    description: 'Our education program reached 100 students this month!',
+    location: 'San Francisco',
+    category: 'Education',
+    mediaItems: [
+      {
+        uri: 'https://picsum.photos/400/401',
+        type: 'image'
+      }
+    ],
+    username: 'Jane Smith',
+    timestamp: '3 hours ago'
+  },
+  {
+    id: '3',
+    title: 'Food Bank Update',
+    description: 'We distributed food to 50 families today. Thank you for your support!',
+    location: 'Chicago',
+    category: 'Social Welfare',
+    mediaItems: [
+      {
+        uri: 'https://picsum.photos/400/402',
+        type: 'image'
+      }
+    ],
+    username: 'Mike Johnson',
+    timestamp: '5 hours ago'
+  }
+];
 
 export default function HomeScreen() {
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    // TODO: Implement actual refresh logic
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  }, []);
+
   const handleCreatePost = () => {
-    // TODO: Implement post creation functionality
-    console.log('Create post button pressed');
+    router.push('/create-post');
+  };
+
+  const renderProject = ({ item }: { item: Project }) => (
+    <TouchableOpacity style={styles.projectCard}>
+      <Image source={{ uri: item.image }} style={styles.projectImage} />
+      <View style={styles.projectContent}>
+        <Text style={styles.projectTitle}>{item.title}</Text>
+        <Text style={styles.projectDescription}>{item.description}</Text>
+        <View style={styles.projectMeta}>
+          <View style={styles.metaItem}>
+            <MaterialIcons name="location-on" size={16} color="#666" />
+            <Text style={styles.metaText}>{item.location}</Text>
+          </View>
+          <View style={styles.metaItem}>
+            <MaterialIcons name="category" size={16} color="#666" />
+            <Text style={styles.metaText}>{item.category}</Text>
+          </View>
+        </View>
+        <View style={styles.projectFooter}>
+          <View style={styles.memberCount}>
+            <MaterialIcons name="people" size={16} color="#666" />
+            <Text style={styles.memberText}>{item.members} members</Text>
+          </View>
+          <View style={styles.progressContainer}>
+            <View style={[styles.progressBar, { width: `${item.progress}%` }]} />
+            <Text style={styles.progressText}>{item.progress}%</Text>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const renderPost = ({ item }: { item: PostType }) => (
+    <Post
+      title={item.title}
+      description={item.description}
+      location={item.location}
+      category={item.category}
+      mediaItems={item.mediaItems}
+      username={item.username}
+      timestamp={item.timestamp}
+    />
+  );
+
+  const renderItem = ({ item, index }: { item: FeedItem; index: number }) => {
+    if (index < PROJECTS.length) {
+      return renderProject({ item: item as Project });
+    }
+    return renderPost({ item: item as PostType });
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Changemakers</Text>
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        {dummyProjects.map(project => (
-          <ProjectCard key={project.id} project={project} />
-        ))}
-      </ScrollView>
-
-      {/* Floating Action Button - Twitter style */}
+      <Stack.Screen
+        options={{
+          title: 'Home',
+          headerShown: false,
+        }}
+      />
+      <Header />
+      <FlatList
+        data={[...PROJECTS, ...POSTS]}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#007AFF']}
+          />
+        }
+      />
+      {/* Floating Action Button */}
       <TouchableOpacity
-        style={styles.fabContainer}
+        style={styles.fab}
         onPress={handleCreatePost}
         activeOpacity={0.8}
       >
-        <View style={styles.fab}>
-          <MaterialIcons name="edit" size={24} color="#fff" />
-        </View>
+        <MaterialIcons name="edit" size={24} color="#fff" />
       </TouchableOpacity>
     </View>
   );
@@ -169,173 +202,102 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.gray.light,
+    backgroundColor: '#fff',
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
+  listContent: {
     padding: 16,
-    backgroundColor: COLORS.white,
-    color: COLORS.gray.dark,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
   },
-  scrollView: {
-    flex: 1,
-    paddingTop: 8,
-  },
-  card: {
-    backgroundColor: COLORS.white,
-    marginHorizontal: 16,
-    marginBottom: 16,
+  projectCard: {
+    backgroundColor: '#fff',
     borderRadius: 12,
+    marginBottom: 16,
     overflow: 'hidden',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  projectImage: {
+    width: '100%',
+    height: 200,
+  },
+  projectContent: {
+    padding: 16,
+  },
+  projectTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  projectDescription: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 12,
+  },
+  projectMeta: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  metaText: {
+    marginLeft: 4,
+    fontSize: 12,
+    color: '#666',
+  },
+  projectFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  memberCount: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  memberText: {
+    marginLeft: 4,
+    fontSize: 12,
+    color: '#666',
+  },
+  progressContainer: {
+    flex: 1,
+    height: 8,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 4,
+    marginLeft: 12,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#007AFF',
+    borderRadius: 4,
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#666',
+    marginLeft: 8,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  projectImage: {
-    width: '100%',
-    height: 200,
-    backgroundColor: COLORS.gray.light,
-  },
-  cardContent: {
-    padding: 16,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    marginBottom: 12,
-  },
-  categoryTag: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    backgroundColor: COLORS.primary + '15',
-    borderRadius: 4,
-  },
-  categoryText: {
-  
-    color: COLORS.primary,
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-  },
-  projectTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: COLORS.gray.dark,
-  },
-  description: {
-    fontSize: 14,
-    color: COLORS.gray.medium,
-    marginBottom: 12,
-    lineHeight: 20,
-  },
-  locationCategory: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  secondaryText: {
-    fontSize: 14,
-    color: COLORS.gray.medium,
-  },
-  progressBarContainer: {
-    height: 6,
-    backgroundColor: '#E9ECEF',
-    borderRadius: 3,
-    marginBottom: 8,
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: COLORS.primary,
-    borderRadius: 3,
-  },
-  progressRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  progressText: {
-    fontSize: 12,
-    color: COLORS.gray.medium,
-    textTransform: 'uppercase',
-    fontWeight: '500',
-  },
-  successText: {
-    color: COLORS.success,
-  },
-  fundingContainer: {
-    marginBottom: 16,
-  },
-  fundingLabel: {
-    fontSize: 12,
-    color: COLORS.gray.medium,
-    marginBottom: 4,
-    fontWeight: '500',
-    textTransform: 'uppercase',
-  },
-  fundingText: {
-    fontSize: 16,
-  },
-  fundingHighlight: {
-    color: COLORS.gray.dark,
-    fontWeight: 'bold',
-  },
-  fundingSecondary: {
-    color: COLORS.gray.medium,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
-  volunteersContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  volunteersText: {
-    fontSize: 14,
-    color: COLORS.gray.medium,
-    marginLeft: 6,
-  },
-  viewDetailsText: {
-    fontSize: 12,
-    color: COLORS.primary,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-  },
-  fabContainer: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    zIndex: 10,
-  },
-  fab: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-    shadowOpacity: 0.27,
-    shadowRadius: 4.65,
-    elevation: 6,
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
 }); 

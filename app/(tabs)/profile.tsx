@@ -153,7 +153,12 @@ const ProfileHeader: React.FC<{ user: UserProfile }> = ({ user }) => {
 
   const handleEditProfile = () => {
     console.log('Edit Profile button pressed');
-    router.push('/edit-profile');
+    try {
+      router.push('/edit-profile');
+      console.log('Navigation attempted');
+    } catch (error) {
+      console.error('Navigation error:', error);
+    }
   };
 
   return (
@@ -251,22 +256,52 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => (
 
 export default function ProfileScreen() {
   const { userData } = useUser();
-  console.log('Profile screen rendered with user data:', userData);
 
   return (
-    <ScrollView style={styles.container}>
-      <ProfileHeader user={userData} />
-      <View style={styles.scoresContainer}>
-        <ScoreCard title="Trust Score" score={userData.trustScore} icon="star" />
-        <ScoreCard title="Impact Score" score={userData.impactScore} icon="trending-up" />
+    <View style={styles.mainContainer}>
+      {/* Header Bar */}
+      <View style={styles.headerBar}>
+        <Text style={styles.headerTitle}>Profile</Text>
       </View>
-      <View style={styles.section}>
-        <SectionHeader title="Projects" action="View All" />
-        {userData.projects.map((project) => (
-          <ProjectCard key={project.id} project={project} />
-        ))}
-      </View>
-    </ScrollView>
+
+      <ScrollView style={styles.container}>
+        <ProfileHeader user={userData} />
+
+        {/* Scores Section */}
+        <View style={styles.scoresContainer}>
+          <ScoreCard title="Trust Score" score={userData.trustScore} icon="verified" />
+          <ScoreCard title="Impact Score" score={userData.impactScore} icon="emoji-events" />
+        </View>
+
+        {/* Projects Section */}
+        <View style={styles.section}>
+          <SectionHeader title="My Projects" action="View All" />
+          {userData.projects.map(project => (
+            <ProjectCard key={project.id} project={project} />
+          ))}
+        </View>
+
+        {/* Quick Actions */}
+        <View style={styles.quickActions}>
+          <TouchableOpacity style={styles.actionButton}>
+            <MaterialIcons name="settings" size={24} color={COLORS.gray.dark} />
+            <Text style={styles.actionText}>Settings</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton}>
+            <MaterialIcons name="security" size={24} color={COLORS.gray.dark} />
+            <Text style={styles.actionText}>Privacy</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton}>
+            <MaterialIcons name="help" size={24} color={COLORS.gray.dark} />
+            <Text style={styles.actionText}>Help</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton}>
+            <MaterialIcons name="logout" size={24} color={COLORS.alert} />
+            <Text style={[styles.actionText, { color: COLORS.alert }]}>Logout</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -312,18 +347,22 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: COLORS.gray.light,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   avatarPlaceholder: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: COLORS.gray.light,
+    backgroundColor: COLORS.gray.medium,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarPlaceholderText: {
-    fontSize: 40,
+    color: COLORS.white,
+    fontSize: 36,
+    fontWeight: 'bold',
   },
   changeAvatarButton: {
     position: 'absolute',

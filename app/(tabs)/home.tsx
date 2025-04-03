@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, FlatList, 
 import { Stack, router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import Post from '../components/Post';
-import Header from '../components/Header';
 import { Project, Post as PostType, FeedItem } from '../types';
 
 // Dummy data for projects
@@ -173,7 +172,6 @@ export default function HomeScreen() {
           headerShown: true,
         }}
       />
-      <Header />
       <FlatList
         data={[...PROJECTS, ...POSTS]}
         renderItem={renderItem}

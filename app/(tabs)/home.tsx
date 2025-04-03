@@ -170,7 +170,7 @@ export default function HomeScreen() {
       <Stack.Screen
         options={{
           title: 'Home',
-          headerShown: false,
+          headerShown: true,
         }}
       />
       <Header />

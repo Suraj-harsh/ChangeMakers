@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams, Stack, router } from 'expo-router';
+
+const { width } = Dimensions.get('window');
 
 // Color constants (same as other pages)
 const COLORS = {
@@ -16,7 +18,14 @@ const COLORS = {
     white: '#FFFFFF'
 } as const;
 
-// Dummy project data
+interface Milestone {
+    id: string;
+    title: string;
+    description: string;
+    status: 'pending' | 'in-progress' | 'completed';
+    dueDate: string;
+}
+
 interface ProjectDetails {
     id: string;
     title: string;
@@ -24,228 +33,145 @@ interface ProjectDetails {
     category: string;
     location: string;
     bannerImage: string;
-    progress: number;
+    fundingGoal: number;
+    fundingRaised: number;
+    volunteersNeeded: number;
+    volunteersCurrent: number;
+    milestones: Milestone[];
     admin: {
         name: string;
         avatar: string;
         organization: string;
     };
-    milestones: Milestone[];
-    achievements: Achievement[];
-    volunteers: {
-        current: number;
-        required: number;
-    };
-    funding: {
-        raised: number;
-        goal: number;
-    };
-    discussions: Discussion[];
-    reviews: Review[];
-    partners: Partner[];
 }
 
-interface Milestone {
-    id: string;
-    title: string;
-    completed: boolean;
-    date: string;
-}
-
-interface Achievement {
-    id: string;
-    title: string;
-    description: string;
-    impact: string;
-    icon: string;
-}
-
-interface Discussion {
-    id: string;
-    user: {
-        name: string;
-        avatar: string;
-    };
-    message: string;
-    timestamp: string;
-    upvotes: number;
-}
-
-interface Review {
-    id: string;
-    user: {
-        name: string;
-        avatar: string;
-    };
-    rating: number;
-    comment: string;
-    date: string;
-}
-
-interface Partner {
-    id: string;
-    name: string;
-    logo: string;
-    description: string;
-}
-
+// Dummy project data
 const dummyProject: ProjectDetails = {
-    id: "1",
-    title: "Youth Tech Education Program",
-    description: "Empowering underprivileged youth with digital skills and coding knowledge. Our program provides hands-on training, mentorship, and career guidance in the technology sector.",
-    category: "Education",
-    location: "San Francisco, CA",
-    bannerImage: "🖥️", // Replace with actual image URL
-    progress: 75,
-    admin: {
-        name: "Sarah Johnson",
-        avatar: "👩🏻‍💼",
-        organization: "Tech4Good"
-    },
+    id: '1',
+    title: 'Environmental Cleanup Initiative',
+    description: 'Join us in our mission to clean up local parks and beaches. We aim to remove 1000kg of waste and plant 500 trees in the next 6 months.',
+    category: 'Environment',
+    location: 'New York',
+    bannerImage: 'https://picsum.photos/800/400',
+    fundingGoal: 20000,
+    fundingRaised: 15000,
+    volunteersNeeded: 50,
+    volunteersCurrent: 28,
     milestones: [
         {
-            id: "1",
-            title: "Program Curriculum Development",
-            completed: true,
-            date: "2024-01"
+            id: '1',
+            title: 'Initial Cleanup Phase',
+            description: 'Clean up 3 major parks in the city',
+            status: 'completed',
+            dueDate: '2024-03-15'
         },
         {
-            id: "2",
-            title: "Mentor Recruitment",
-            completed: true,
-            date: "2024-02"
+            id: '2',
+            title: 'Tree Planting Campaign',
+            description: 'Plant 200 trees in designated areas',
+            status: 'in-progress',
+            dueDate: '2024-04-30'
         },
         {
-            id: "3",
-            title: "First Batch Training",
-            completed: false,
-            date: "2024-04"
+            id: '3',
+            title: 'Community Education',
+            description: 'Host 5 workshops on environmental conservation',
+            status: 'pending',
+            dueDate: '2024-06-15'
         }
     ],
-    achievements: [
-        {
-            id: "1",
-            title: "Student Enrollment",
-            description: "Successfully enrolled 50 students from underserved communities",
-            impact: "50 lives impacted",
-            icon: "📚"
-        },
-        {
-            id: "2",
-            title: "Mentor Network",
-            description: "Built a network of 20 tech professionals as mentors",
-            impact: "20 industry experts",
-            icon: "🤝"
-        }
-    ],
-    volunteers: {
-        current: 15,
-        required: 25
-    },
-    funding: {
-        raised: 25000,
-        goal: 50000
-    },
-    discussions: [
-        {
-            id: "1",
-            user: {
-                name: "John Doe",
-                avatar: "👨🏻‍💻"
-            },
-            message: "This is exactly what our community needs! When does the next batch start?",
-            timestamp: "2 hours ago",
-            upvotes: 5
-        }
-    ],
-    reviews: [
-        {
-            id: "1",
-            user: {
-                name: "Maria Rodriguez",
-                avatar: "👩🏽‍🏫"
-            },
-            rating: 5,
-            comment: "Amazing initiative! The curriculum is well-structured and the mentors are very supportive.",
-            date: "2024-03-15"
-        }
-    ],
-    partners: [
-        {
-            id: "1",
-            name: "Local Tech Hub",
-            logo: "🏢",
-            description: "Providing workspace and infrastructure support"
-        },
-        {
-            id: "2",
-            name: "Code Academy",
-            logo: "💻",
-            description: "Technical curriculum partner"
-        }
-    ]
+    admin: {
+        name: 'Sarah Johnson',
+        avatar: 'https://picsum.photos/100/100',
+        organization: 'Green Earth Foundation'
+    }
 };
 
-const ProjectBanner: React.FC<{ project: ProjectDetails }> = ({ project }) => (
+const ProjectBanner = ({ project }: { project: ProjectDetails }) => (
     <View style={styles.bannerContainer}>
-        <Text style={styles.bannerImage}>{project.bannerImage}</Text>
+        <Image source={{ uri: project.bannerImage }} style={styles.bannerImage} />
         <View style={styles.bannerOverlay}>
-            <Text style={styles.projectCategory}>{project.category.toUpperCase()}</Text>
             <Text style={styles.projectTitle}>{project.title}</Text>
-            <Text style={styles.projectLocation}>
-                <MaterialIcons name="location-on" size={16} color={COLORS.white} />
-                {project.location}
-            </Text>
+            <View style={styles.projectMeta}>
+                <View style={styles.metaItem}>
+                    <MaterialIcons name="location-on" size={16} color="#fff" />
+                    <Text style={styles.metaText}>{project.location}</Text>
+                </View>
+                <View style={styles.metaItem}>
+                    <MaterialIcons name="category" size={16} color="#fff" />
+                    <Text style={styles.metaText}>{project.category}</Text>
+                </View>
+            </View>
         </View>
     </View>
 );
 
-const AdminInfo: React.FC<{ admin: ProjectDetails['admin'] }> = ({ admin }) => (
-    <TouchableOpacity style={styles.adminContainer}>
-        <Text style={styles.adminAvatar}>{admin.avatar}</Text>
+const AdminInfo = ({ admin }: { admin: ProjectDetails['admin'] }) => (
+    <View style={styles.adminContainer}>
+        <Image source={{ uri: admin.avatar }} style={styles.adminAvatar} />
         <View style={styles.adminInfo}>
             <Text style={styles.adminName}>{admin.name}</Text>
-            <Text style={styles.organizationName}>{admin.organization}</Text>
+            <Text style={styles.adminOrg}>{admin.organization}</Text>
         </View>
-        <MaterialIcons name="chevron-right" size={24} color={COLORS.gray.medium} />
+    </View>
+);
+
+const MembersSection = ({ project }: { project: ProjectDetails }) => (
+    <TouchableOpacity
+        style={styles.membersSection}
+        onPress={() => router.push(`/project-members/${project.id}`)}
+    >
+        <View style={styles.membersHeader}>
+            <Text style={styles.sectionTitle}>Members</Text>
+            <MaterialIcons name="chevron-right" size={24} color="#666" />
+        </View>
+        <View style={styles.membersCount}>
+            <Text style={styles.membersText}>
+                {project.volunteersCurrent} members ({project.volunteersCurrent}/{project.volunteersNeeded} volunteers)
+            </Text>
+        </View>
     </TouchableOpacity>
 );
 
-const MilestoneTracker: React.FC<{ milestones: Milestone[] }> = ({ milestones }) => (
-    <View style={styles.milestoneContainer}>
-        {milestones.map(milestone => (
+const MilestoneTracker = ({ milestones }: { milestones: Milestone[] }) => (
+    <View style={styles.milestonesContainer}>
+        {milestones.map((milestone) => (
             <View key={milestone.id} style={styles.milestoneItem}>
-                <MaterialIcons
-                    name={milestone.completed ? "check-circle" : "radio-button-unchecked"}
-                    size={24}
-                    color={milestone.completed ? COLORS.success : COLORS.gray.medium}
-                />
-                <View style={styles.milestoneInfo}>
+                <View style={styles.milestoneHeader}>
                     <Text style={styles.milestoneTitle}>{milestone.title}</Text>
-                    <Text style={styles.milestoneDate}>{milestone.date}</Text>
+                    <View style={[
+                        styles.statusBadge,
+                        milestone.status === 'completed' && styles.statusCompleted,
+                        milestone.status === 'in-progress' && styles.statusInProgress
+                    ]}>
+                        <Text style={styles.statusText}>
+                            {milestone.status.replace('-', ' ')}
+                        </Text>
+                    </View>
                 </View>
+                <Text style={styles.milestoneDescription}>{milestone.description}</Text>
+                <Text style={styles.milestoneDate}>Due: {milestone.dueDate}</Text>
             </View>
         ))}
     </View>
 );
 
-const ActionButtons: React.FC<{ volunteers: ProjectDetails['volunteers'], funding: ProjectDetails['funding'] }> =
-    ({ volunteers, funding }) => (
-        <View style={styles.actionContainer}>
-            <TouchableOpacity style={[styles.actionButton, styles.volunteerButton]}>
-                <MaterialIcons name="people" size={24} color={COLORS.white} />
-                <Text style={styles.actionButtonText}>
-                    Sign Up as Volunteer ({volunteers.current}/{volunteers.required})
-                </Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionButton, styles.donateButton]}>
-                <MaterialIcons name="favorite" size={24} color={COLORS.white} />
-                <Text style={styles.actionButtonText}>
-                    Donate Now (${funding.raised.toLocaleString()}/${funding.goal.toLocaleString()})
-                </Text>
-            </TouchableOpacity>
-        </View>
-    );
+const ActionButtons = ({ project }: { project: ProjectDetails }) => (
+    <View style={styles.actionButtons}>
+        <TouchableOpacity style={styles.actionButton}>
+            <MaterialIcons name="volunteer-activism" size={24} color="#fff" />
+            <Text style={styles.actionButtonText}>
+                Volunteer ({project.volunteersCurrent}/{project.volunteersNeeded})
+            </Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionButton}>
+            <MaterialIcons name="attach-money" size={24} color="#fff" />
+            <Text style={styles.actionButtonText}>
+                Donate (${project.fundingRaised}/${project.fundingGoal})
+            </Text>
+        </TouchableOpacity>
+    </View>
+);
 
 export default function ProjectDetailsScreen() {
     const params = useLocalSearchParams();
@@ -262,91 +188,25 @@ export default function ProjectDetailsScreen() {
                 <ProjectBanner project={project} />
 
                 <View style={styles.content}>
-                    {/* Admin Info */}
-                    <AdminInfo admin={project.admin} />
-
                     {/* Description */}
                     <Text style={styles.sectionTitle}>About the Project</Text>
                     <Text style={styles.description}>{project.description}</Text>
 
                     {/* Milestones */}
-                    <Text style={styles.sectionTitle}>Milestones</Text>
+                    <Text style={styles.sectionTitle}>Project Milestones</Text>
                     <MilestoneTracker milestones={project.milestones} />
 
-                    {/* Achievements */}
-                    <Text style={styles.sectionTitle}>Achievements & Impact</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.achievementsContainer}>
-                        {project.achievements.map(achievement => (
-                            <View key={achievement.id} style={styles.achievementCard}>
-                                <Text style={styles.achievementIcon}>{achievement.icon}</Text>
-                                <Text style={styles.achievementTitle}>{achievement.title}</Text>
-                                <Text style={styles.achievementImpact}>{achievement.impact}</Text>
-                            </View>
-                        ))}
-                    </ScrollView>
+                    {/* Members Section */}
+                    <MembersSection project={project} />
 
                     {/* Action Buttons */}
-                    <ActionButtons volunteers={project.volunteers} funding={project.funding} />
+                    <ActionButtons project={project} />
 
-                    {/* Discussions */}
-                    <Text style={styles.sectionTitle}>Community Discussion</Text>
-                    {project.discussions.map(discussion => (
-                        <View key={discussion.id} style={styles.discussionItem}>
-                            <View style={styles.discussionHeader}>
-                                <Text style={styles.discussionAvatar}>{discussion.user.avatar}</Text>
-                                <Text style={styles.discussionUser}>{discussion.user.name}</Text>
-                                <Text style={styles.discussionTime}>{discussion.timestamp}</Text>
-                            </View>
-                            <Text style={styles.discussionMessage}>{discussion.message}</Text>
-                            <TouchableOpacity style={styles.upvoteButton}>
-                                <MaterialIcons name="thumb-up" size={16} color={COLORS.primary} />
-                                <Text style={styles.upvoteCount}>{discussion.upvotes}</Text>
-                            </TouchableOpacity>
-                        </View>
-                    ))}
-
-                    {/* Reviews */}
-                    <Text style={styles.sectionTitle}>Reviews & Endorsements</Text>
-                    {project.reviews.map(review => (
-                        <View key={review.id} style={styles.reviewItem}>
-                            <View style={styles.reviewHeader}>
-                                <Text style={styles.reviewAvatar}>{review.user.avatar}</Text>
-                                <View style={styles.reviewInfo}>
-                                    <Text style={styles.reviewUser}>{review.user.name}</Text>
-                                    <View style={styles.ratingContainer}>
-                                        {[...Array(5)].map((_, i) => (
-                                            <MaterialIcons
-                                                key={i}
-                                                name="star"
-                                                size={16}
-                                                color={i < review.rating ? '#FFC107' : COLORS.gray.medium}
-                                            />
-                                        ))}
-                                    </View>
-                                </View>
-                                <Text style={styles.reviewDate}>{review.date}</Text>
-                            </View>
-                            <Text style={styles.reviewComment}>{review.comment}</Text>
-                        </View>
-                    ))}
-
-                    {/* Partners */}
-                    <Text style={styles.sectionTitle}>Partners & Collaborators</Text>
-                    <View style={styles.partnersContainer}>
-                        {project.partners.map(partner => (
-                            <View key={partner.id} style={styles.partnerCard}>
-                                <Text style={styles.partnerLogo}>{partner.logo}</Text>
-                                <Text style={styles.partnerName}>{partner.name}</Text>
-                                <Text style={styles.partnerDescription}>{partner.description}</Text>
-                            </View>
-                        ))}
+                    {/* Admin Info at bottom */}
+                    <View style={styles.bottomSection}>
+                        <Text style={styles.sectionTitle}>Project Admin</Text>
+                        <AdminInfo admin={project.admin} />
                     </View>
-
-                    {/* Contact Button */}
-                    <TouchableOpacity style={styles.contactButton}>
-                        <MaterialIcons name="mail" size={24} color={COLORS.white} />
-                        <Text style={styles.contactButtonText}>Contact Project Admin</Text>
-                    </TouchableOpacity>
                 </View>
             </ScrollView>
         </>
@@ -356,17 +216,15 @@ export default function ProjectDetailsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.gray.light,
+        backgroundColor: '#fff',
     },
     bannerContainer: {
-        height: 200,
-        backgroundColor: COLORS.primary,
-        position: 'relative',
+        height: 250,
+        width: width,
     },
     bannerImage: {
-        fontSize: 100,
-        textAlign: 'center',
-        marginTop: 20,
+        width: '100%',
+        height: '100%',
     },
     bannerOverlay: {
         position: 'absolute',
@@ -374,22 +232,25 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         padding: 16,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-    },
-    projectCategory: {
-        color: COLORS.white,
-        fontSize: 12,
-        fontWeight: '600',
-        marginBottom: 4,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     projectTitle: {
-        color: COLORS.white,
         fontSize: 24,
         fontWeight: 'bold',
-        marginBottom: 4,
+        color: '#fff',
+        marginBottom: 8,
     },
-    projectLocation: {
-        color: COLORS.white,
+    projectMeta: {
+        flexDirection: 'row',
+        gap: 16,
+    },
+    metaItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    metaText: {
+        color: '#fff',
         fontSize: 14,
     },
     content: {
@@ -398,232 +259,125 @@ const styles = StyleSheet.create({
     adminContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: COLORS.white,
-        padding: 12,
-        borderRadius: 8,
-        marginBottom: 16,
+        marginBottom: 24,
     },
     adminAvatar: {
-        fontSize: 24,
-        marginRight: 12,
+        width: 50,
+        height: 50,
+        borderRadius: 25,
     },
     adminInfo: {
-        flex: 1,
+        marginLeft: 12,
     },
     adminName: {
         fontSize: 16,
         fontWeight: '600',
-        color: COLORS.gray.dark,
     },
-    organizationName: {
+    adminOrg: {
         fontSize: 14,
-        color: COLORS.gray.medium,
+        color: '#666',
     },
     sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: COLORS.gray.dark,
-        marginBottom: 12,
-        marginTop: 24,
+        fontSize: 20,
+        fontWeight: '600',
+        marginBottom: 16,
     },
     description: {
         fontSize: 16,
-        color: COLORS.gray.dark,
         lineHeight: 24,
-        marginBottom: 16,
+        color: '#333',
+        marginBottom: 24,
     },
-    milestoneContainer: {
-        backgroundColor: COLORS.white,
-        borderRadius: 8,
-        padding: 16,
+    milestonesContainer: {
+        marginBottom: 24,
     },
     milestoneItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 16,
+        backgroundColor: '#f8f9fa',
+        padding: 16,
+        borderRadius: 8,
+        marginBottom: 12,
     },
-    milestoneInfo: {
-        marginLeft: 12,
-        flex: 1,
+    milestoneHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8,
     },
     milestoneTitle: {
         fontSize: 16,
-        color: COLORS.gray.dark,
+        fontWeight: '600',
+    },
+    statusBadge: {
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 12,
+        backgroundColor: '#e9ecef',
+    },
+    statusCompleted: {
+        backgroundColor: '#28a745',
+    },
+    statusInProgress: {
+        backgroundColor: '#ffc107',
+    },
+    statusText: {
+        fontSize: 12,
         fontWeight: '500',
+        color: '#fff',
+        textTransform: 'capitalize',
+    },
+    milestoneDescription: {
+        fontSize: 14,
+        color: '#666',
+        marginBottom: 8,
     },
     milestoneDate: {
-        fontSize: 14,
-        color: COLORS.gray.medium,
-    },
-    achievementsContainer: {
-        marginHorizontal: -16,
-        paddingHorizontal: 16,
-    },
-    achievementCard: {
-        backgroundColor: COLORS.white,
-        borderRadius: 8,
-        padding: 16,
-        marginRight: 12,
-        width: 160,
-        alignItems: 'center',
-    },
-    achievementIcon: {
-        fontSize: 32,
-        marginBottom: 8,
-    },
-    achievementTitle: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: COLORS.gray.dark,
-        marginBottom: 4,
-        textAlign: 'center',
-    },
-    achievementImpact: {
         fontSize: 12,
-        color: COLORS.success,
-        fontWeight: '500',
+        color: '#999',
     },
-    actionContainer: {
-        marginTop: 24,
+    actionButtons: {
+        flexDirection: 'row',
         gap: 12,
+        marginBottom: 24,
     },
     actionButton: {
+        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
+        backgroundColor: '#007AFF',
         padding: 16,
         borderRadius: 8,
         gap: 8,
-    },
-    volunteerButton: {
-        backgroundColor: COLORS.primary,
-    },
-    donateButton: {
-        backgroundColor: COLORS.success,
     },
     actionButtonText: {
-        color: COLORS.white,
+        color: '#fff',
         fontSize: 16,
         fontWeight: '600',
     },
-    discussionItem: {
-        backgroundColor: COLORS.white,
-        borderRadius: 8,
+    membersSection: {
+        backgroundColor: '#f8f9fa',
         padding: 16,
-        marginBottom: 12,
+        borderRadius: 8,
+        marginBottom: 24,
     },
-    discussionHeader: {
+    membersHeader: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 8,
     },
-    discussionAvatar: {
-        fontSize: 24,
-        marginRight: 8,
-    },
-    discussionUser: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: COLORS.gray.dark,
-        flex: 1,
-    },
-    discussionTime: {
-        fontSize: 12,
-        color: COLORS.gray.medium,
-    },
-    discussionMessage: {
-        fontSize: 14,
-        color: COLORS.gray.dark,
-        lineHeight: 20,
-        marginBottom: 8,
-    },
-    upvoteButton: {
+    membersCount: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 4,
     },
-    upvoteCount: {
+    membersText: {
         fontSize: 14,
-        color: COLORS.primary,
+        color: '#666',
     },
-    reviewItem: {
-        backgroundColor: COLORS.white,
-        borderRadius: 8,
-        padding: 16,
-        marginBottom: 12,
-    },
-    reviewHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    reviewAvatar: {
-        fontSize: 24,
-        marginRight: 8,
-    },
-    reviewInfo: {
-        flex: 1,
-    },
-    reviewUser: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: COLORS.gray.dark,
-    },
-    ratingContainer: {
-        flexDirection: 'row',
-        gap: 2,
-    },
-    reviewDate: {
-        fontSize: 12,
-        color: COLORS.gray.medium,
-    },
-    reviewComment: {
-        fontSize: 14,
-        color: COLORS.gray.dark,
-        lineHeight: 20,
-    },
-    partnersContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 12,
-    },
-    partnerCard: {
-        backgroundColor: COLORS.white,
-        borderRadius: 8,
-        padding: 16,
-        width: '48%',
-        alignItems: 'center',
-    },
-    partnerLogo: {
-        fontSize: 32,
-        marginBottom: 8,
-    },
-    partnerName: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: COLORS.gray.dark,
-        marginBottom: 4,
-        textAlign: 'center',
-    },
-    partnerDescription: {
-        fontSize: 12,
-        color: COLORS.gray.medium,
-        textAlign: 'center',
-    },
-    contactButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: COLORS.primary,
-        padding: 16,
-        borderRadius: 8,
+    bottomSection: {
         marginTop: 24,
-        marginBottom: 32,
-        gap: 8,
-    },
-    contactButtonText: {
-        color: COLORS.white,
-        fontSize: 16,
-        fontWeight: '600',
+        paddingTop: 24,
+        borderTopWidth: 1,
+        borderTopColor: '#eee',
     },
 }); 

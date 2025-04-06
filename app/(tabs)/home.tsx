@@ -54,48 +54,28 @@ const PROJECTS: Project[] = [
 // Dummy data for posts
 const POSTS: PostType[] = [
   {
-    id: '1',
-    title: 'Making a Difference',
-    description: 'Just completed our first beach cleanup event! Thanks to all volunteers who joined us.',
-    location: 'New York',
+    id: '4',
+    title: 'Community Garden Update',
+    description: 'Our community garden is thriving! Check out the progress.',
+    location: 'Seattle',
     category: 'Environment',
     mediaItems: [
-      {
-        uri: 'https://picsum.photos/400/400',
-        type: 'image'
-      }
+      { uri: 'https://picsum.photos/400/303', type: 'image' },
+      { uri: 'https://picsum.photos/400/304', type: 'image' }
     ],
-    username: 'John Doe',
+    username: 'johndoe',
     timestamp: '2 hours ago'
   },
   {
-    id: '2',
-    title: 'Education Success',
-    description: 'Our education program reached 100 students this month!',
-    location: 'San Francisco',
-    category: 'Education',
-    mediaItems: [
-      {
-        uri: 'https://picsum.photos/400/401',
-        type: 'image'
-      }
-    ],
-    username: 'Jane Smith',
-    timestamp: '3 hours ago'
-  },
-  {
-    id: '3',
-    title: 'Food Bank Update',
-    description: 'We distributed food to 50 families today. Thank you for your support!',
-    location: 'Chicago',
+    id: '5',
+    title: 'Volunteer Opportunity',
+    description: 'Looking for volunteers for our weekend cleanup event.',
+    location: 'Boston',
     category: 'Social Welfare',
     mediaItems: [
-      {
-        uri: 'https://picsum.photos/400/402',
-        type: 'image'
-      }
+      { uri: 'https://picsum.photos/400/305', type: 'image' }
     ],
-    username: 'Mike Johnson',
+    username: 'janedoe',
     timestamp: '5 hours ago'
   }
 ];
@@ -164,6 +144,12 @@ export default function HomeScreen() {
     return renderPost({ item: item as PostType });
   };
 
+  // Combine projects and posts with unique keys
+  const feedData = [
+    ...PROJECTS.map(project => ({ ...project, type: 'project' })),
+    ...POSTS.map(post => ({ ...post, type: 'post' }))
+  ];
+
   return (
     <View style={styles.container}>
       <Stack.Screen
@@ -173,9 +159,9 @@ export default function HomeScreen() {
         }}
       />
       <FlatList
-        data={[...PROJECTS, ...POSTS]}
+        data={feedData}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => `${item.type}-${item.id}`}
         contentContainerStyle={styles.listContent}
         refreshControl={
           <RefreshControl

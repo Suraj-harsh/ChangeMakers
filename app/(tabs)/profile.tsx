@@ -18,7 +18,8 @@ const COLORS = {
 } as const;
 
 // Dummy user data
-interface UserProfile {
+interface UserData {
+  id: string;
   username: string;
   bio: string;
   location: string;
@@ -29,6 +30,7 @@ interface UserProfile {
   impactScore: number;
   achievements: Achievement[];
   projects: Project[];
+  posts: Post[];
   volunteerHistory: VolunteerActivity[];
   donations: Donation[];
   endorsements: Endorsement[];
@@ -76,7 +78,17 @@ interface Endorsement {
   date: string;
 }
 
-const dummyUser: UserProfile = {
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  likes: number;
+  comments: number;
+  createdAt: string;
+}
+
+const dummyUser: UserData = {
+  id: "1",
   username: "Sarah Johnson",
   bio: "Passionate about sustainable development and community building. Looking to make a positive impact through technology and education.",
   location: "San Francisco, CA",
@@ -117,6 +129,24 @@ const dummyUser: UserProfile = {
       role: "volunteer"
     }
   ],
+  posts: [
+    {
+      id: "1",
+      title: "First Post",
+      content: "This is the content of the first post. It's a great way to share information and engage with others.",
+      likes: 10,
+      comments: 2,
+      createdAt: "2024-03-15"
+    },
+    {
+      id: "2",
+      title: "Second Post",
+      content: "This is the content of the second post. It's a great way to share information and engage with others.",
+      likes: 5,
+      comments: 1,
+      createdAt: "2024-03-10"
+    }
+  ],
   volunteerHistory: [
     {
       id: "1",
@@ -148,7 +178,7 @@ const dummyUser: UserProfile = {
   avatar: "https://example.com/sarah-johnson.jpg"
 };
 
-const ProfileHeader: React.FC<{ user: UserProfile }> = ({ user }) => {
+const ProfileHeader: React.FC<{ user: UserData }> = ({ user }) => {
   const router = useRouter();
 
   const handleEditProfile = () => {
@@ -254,8 +284,58 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => (
   </TouchableOpacity>
 );
 
+const ProjectsSection = ({ projects, onViewAll }: { projects: Project[], onViewAll: () => void }) => (
+  <View style={styles.section}>
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionTitle}>Projects</Text>
+      <TouchableOpacity onPress={onViewAll}>
+        <Text style={styles.viewAllText}>View All</Text>
+      </TouchableOpacity>
+    </View>
+    {projects.map(project => (
+      <ProjectCard key={project.id} project={project} />
+    ))}
+  </View>
+);
+
+const PostsSection = ({ posts, onViewAll }: { posts: Post[], onViewAll: () => void }) => (
+  <View style={styles.section}>
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionTitle}>Posts</Text>
+      <TouchableOpacity onPress={onViewAll}>
+        <Text style={styles.viewAllText}>View All</Text>
+      </TouchableOpacity>
+    </View>
+    {posts?.map(post => (
+      <View key={post.id} style={styles.postItem}>
+        <Text style={styles.postTitle}>{post.title}</Text>
+        <Text style={styles.postContent} numberOfLines={2}>{post.content}</Text>
+        <View style={styles.postMeta}>
+          <View style={styles.postStat}>
+            <MaterialIcons name="thumb-up" size={16} color="#666" />
+            <Text style={styles.postStatText}>{post.likes}</Text>
+          </View>
+          <View style={styles.postStat}>
+            <MaterialIcons name="chat" size={16} color="#666" />
+            <Text style={styles.postStatText}>{post.comments}</Text>
+          </View>
+          <Text style={styles.postDate}>{post.createdAt}</Text>
+        </View>
+      </View>
+    ))}
+  </View>
+);
+
 export default function ProfileScreen() {
   const { userData } = useUser();
+
+  const handleViewAllProjects = () => {
+    router.push(`/user-projects/${userData.id}`);
+  };
+
+  const handleViewAllPosts = () => {
+    router.push(`/user-posts/${userData.id}`);
+  };
 
   return (
     <View style={styles.mainContainer}>
@@ -269,17 +349,15 @@ export default function ProfileScreen() {
 
         {/* Scores Section */}
         <View style={styles.scoresContainer}>
-          <ScoreCard title="Trust Score" score={userData.trustScore} icon="verified" />
-          <ScoreCard title="Impact Score" score={userData.impactScore} icon="emoji-events" />
+          <ScoreCard title="Trust Score" score={userData.trustScore} icon="thumb-up" />
+          <ScoreCard title="Impact Score" score={userData.impactScore} icon="star" />
         </View>
 
         {/* Projects Section */}
-        <View style={styles.section}>
-          <SectionHeader title="My Projects" action="View All" />
-          {userData.projects.map(project => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
-        </View>
+        <ProjectsSection projects={userData.projects} onViewAll={handleViewAllProjects} />
+
+        {/* Posts Section */}
+        <PostsSection posts={userData.posts || []} onViewAll={handleViewAllPosts} />
 
         {/* Quick Actions */}
         <View style={styles.quickActions}>
@@ -463,7 +541,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 18,
@@ -561,5 +639,45 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
     textAlign: 'center',
+  },
+  viewAllText: {
+    color: COLORS.primary,
+    fontSize: 14,
+  },
+  postItem: {
+    backgroundColor: COLORS.gray.light,
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  postTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: COLORS.gray.dark,
+  },
+  postContent: {
+    fontSize: 14,
+    color: COLORS.gray.medium,
+    marginBottom: 12,
+    lineHeight: 20,
+  },
+  postMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  postStat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  postStatText: {
+    fontSize: 14,
+    color: COLORS.gray.medium,
+    marginLeft: 4,
+  },
+  postDate: {
+    fontSize: 12,
+    color: COLORS.gray.medium,
   },
 }); 

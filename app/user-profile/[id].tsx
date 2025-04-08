@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 
 interface UserProfile {
@@ -15,6 +15,14 @@ interface UserProfile {
         title: string;
         role: string;
         status: 'active' | 'completed';
+    }[];
+    posts: {
+        id: string;
+        title: string;
+        content: string;
+        likes: number;
+        comments: number;
+        createdAt: string;
     }[];
     trustScore: number;
     impactScore: number;
@@ -50,6 +58,24 @@ const USER_PROFILE: UserProfile = {
             status: 'completed'
         }
     ],
+    posts: [
+        {
+            id: '1',
+            title: 'Our Latest Cleanup Drive',
+            content: 'We successfully cleaned up 5 tons of waste from the local beach...',
+            likes: 45,
+            comments: 12,
+            createdAt: '2024-03-15'
+        },
+        {
+            id: '2',
+            title: 'Tree Planting Success',
+            content: 'Thanks to all volunteers who helped us plant 1000 trees...',
+            likes: 78,
+            comments: 23,
+            createdAt: '2024-02-28'
+        }
+    ],
     trustScore: 85,
     impactScore: 92,
     location: 'New York, USA',
@@ -83,9 +109,14 @@ const SkillsSection = ({ skills }: { skills: string[] }) => (
     </View>
 );
 
-const ProjectsSection = ({ projects }: { projects: UserProfile['projects'] }) => (
+const ProjectsSection = ({ projects, onViewAll }: { projects: UserProfile['projects'], onViewAll: () => void }) => (
     <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Projects</Text>
+        <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Projects</Text>
+            <TouchableOpacity onPress={onViewAll}>
+                <Text style={styles.viewAllText}>View All</Text>
+            </TouchableOpacity>
+        </View>
         {projects.map(project => (
             <View key={project.id} style={styles.projectItem}>
                 <Text style={styles.projectTitle}>{project.title}</Text>
@@ -99,6 +130,34 @@ const ProjectsSection = ({ projects }: { projects: UserProfile['projects'] }) =>
                             {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
                         </Text>
                     </View>
+                </View>
+            </View>
+        ))}
+    </View>
+);
+
+const PostsSection = ({ posts, onViewAll }: { posts: UserProfile['posts'], onViewAll: () => void }) => (
+    <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Posts</Text>
+            <TouchableOpacity onPress={onViewAll}>
+                <Text style={styles.viewAllText}>View All</Text>
+            </TouchableOpacity>
+        </View>
+        {posts.map(post => (
+            <View key={post.id} style={styles.postItem}>
+                <Text style={styles.postTitle}>{post.title}</Text>
+                <Text style={styles.postContent} numberOfLines={2}>{post.content}</Text>
+                <View style={styles.postMeta}>
+                    <View style={styles.postStat}>
+                        <MaterialIcons name="thumb-up" size={16} color="#666" />
+                        <Text style={styles.postStatText}>{post.likes}</Text>
+                    </View>
+                    <View style={styles.postStat}>
+                        <MaterialIcons name="chat" size={16} color="#666" />
+                        <Text style={styles.postStatText}>{post.comments}</Text>
+                    </View>
+                    <Text style={styles.postDate}>{post.createdAt}</Text>
                 </View>
             </View>
         ))}
@@ -119,7 +178,6 @@ const ScoreButton = ({
     <TouchableOpacity
         style={[styles.scoreButton, isActive && styles.scoreButtonActive]}
         onPress={onPress}
-        disabled={isActive}
     >
         <Text style={styles.scoreTitle}>{title}</Text>
         <Text style={styles.scoreValue}>{score}</Text>
@@ -179,17 +237,27 @@ export default function UserProfileScreen() {
     const [impactScoreActive, setImpactScoreActive] = React.useState(false);
 
     const handleTrustScore = () => {
-        if (!trustScoreActive) {
-            setUser(prev => ({ ...prev, trustScore: prev.trustScore + 1 }));
-            setTrustScoreActive(true);
-        }
+        setUser(prev => ({
+            ...prev,
+            trustScore: trustScoreActive ? prev.trustScore - 1 : prev.trustScore + 1
+        }));
+        setTrustScoreActive(!trustScoreActive);
     };
 
     const handleImpactScore = () => {
-        if (!impactScoreActive) {
-            setUser(prev => ({ ...prev, impactScore: prev.impactScore + 1 }));
-            setImpactScoreActive(true);
-        }
+        setUser(prev => ({
+            ...prev,
+            impactScore: impactScoreActive ? prev.impactScore - 1 : prev.impactScore + 1
+        }));
+        setImpactScoreActive(!impactScoreActive);
+    };
+
+    const handleViewAllProjects = () => {
+        router.push(`/user-projects/${id}`);
+    };
+
+    const handleViewAllPosts = () => {
+        router.push(`/user-posts/${id}`);
     };
 
     return (
@@ -226,7 +294,8 @@ export default function UserProfileScreen() {
                     <ContactInfo user={user} />
                     <SocialLinks socialLinks={user.socialLinks} />
                     <SkillsSection skills={user.skills} />
-                    <ProjectsSection projects={user.projects} />
+                    <ProjectsSection projects={user.projects} onViewAll={handleViewAllProjects} />
+                    <PostsSection posts={user.posts} onViewAll={handleViewAllPosts} />
                 </View>
             </ScrollView>
         </>
@@ -371,5 +440,49 @@ const styles = StyleSheet.create({
         backgroundColor: '#f8f9fa',
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    sectionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    viewAllText: {
+        color: '#007AFF',
+        fontSize: 14,
+    },
+    postItem: {
+        backgroundColor: '#f8f9fa',
+        padding: 16,
+        borderRadius: 8,
+        marginBottom: 12,
+    },
+    postTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        marginBottom: 8,
+    },
+    postContent: {
+        fontSize: 14,
+        color: '#666',
+        marginBottom: 12,
+    },
+    postMeta: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    postStat: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    postStatText: {
+        fontSize: 14,
+        color: '#666',
+        marginLeft: 4,
+    },
+    postDate: {
+        fontSize: 12,
+        color: '#999',
     },
 }); 

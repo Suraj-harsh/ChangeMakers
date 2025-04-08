@@ -41,7 +41,17 @@ interface Endorsement {
     date: string;
 }
 
+interface Post {
+    id: string;
+    title: string;
+    content: string;
+    likes: number;
+    comments: number;
+    createdAt: string;
+}
+
 interface UserData {
+    id: string;
     username: string;
     avatar: string;
     location: string;
@@ -53,6 +63,7 @@ interface UserData {
     impactScore: number;
     achievements: Achievement[];
     projects: Project[];
+    posts: Post[];
     volunteerHistory: VolunteerActivity[];
     donations: Donation[];
     endorsements: Endorsement[];
@@ -64,6 +75,7 @@ interface UserContextType {
 }
 
 const initialUserData: UserData = {
+    id: "1",
     username: "Sarah Johnson",
     avatar: "👨🏻‍💻",
     location: "San Francisco, CA",
@@ -103,6 +115,24 @@ const initialUserData: UserData = {
             location: "Oakland, CA",
             progress: 90,
             role: "volunteer"
+        }
+    ],
+    posts: [
+        {
+            id: "1",
+            title: "First Post",
+            content: "This is the content of the first post. It's a great way to share information and engage with others.",
+            likes: 10,
+            comments: 2,
+            createdAt: "2024-03-15"
+        },
+        {
+            id: "2",
+            title: "Second Post",
+            content: "This is the content of the second post. It's a great way to share information and engage with others.",
+            likes: 5,
+            comments: 1,
+            createdAt: "2024-03-10"
         }
     ],
     volunteerHistory: [

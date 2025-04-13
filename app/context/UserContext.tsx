@@ -168,13 +168,30 @@ const initialUserData: UserData = {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-    const [userData, setUserData] = useState<UserData>(initialUserData);
+    const [userData, setUserData] = useState<UserData>({
+        id: '',
+        username: '',
+        avatar: '',
+        location: '',
+        bio: '',
+        email: '',
+        interests: [],
+        isVerified: false,
+        trustScore: 0,
+        impactScore: 0,
+        achievements: [],
+        projects: [],
+        posts: [],
+        volunteerHistory: [],
+        donations: [],
+        endorsements: [],
+    });
+
+    console.log('UserContext initialized with data:', userData);
 
     const updateUserData = (data: Partial<UserData>) => {
-        setUserData(prev => ({
-            ...prev,
-            ...data
-        }));
+        console.log('Updating user data with:', data);
+        setUserData(prev => ({ ...prev, ...data }));
     };
 
     return (
